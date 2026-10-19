@@ -1,0 +1,73 @@
+KQK: 368452 standard-valid positions (value for the player to move)
+rule set	win	draw	loss	longest win (plies)	graph size	ms
+standard	144508	23048	200896	19	372064	13271
+standard-normal	144508	22176	201768	15	375676	13117
+standard-passing	144508	22176	201768	23	372064	12737
+standard-lose-turn	144508	22176	201768	19	372064	12015
+natural	144508	22176	201768	17	496500	12920
+natural-normal	144508	22176	201768	17	496500	12457
+natural-passing	144508	22176	201768	25	496516	12758
+natural-lose-turn	144508	22176	201768	17	496500	12122
+standard-naturalized	144508	22176	201768	15	375676	11616
+standard-normal-naturalized	144508	22176	201768	15	375676	11576
+standard-passing-naturalized	144508	22176	201768	23	375676	11521
+standard-lose-turn-naturalized	144508	22176	201768	15	375676	11294
+
+872 standard stalemates, valued for the stalemated player (win/draw/loss)
+standard	0	872	0
+standard-normal	0	0	872
+standard-passing	0	0	872
+standard-lose-turn	0	0	872
+natural	0	0	872
+natural-normal	0	0	872
+natural-passing	0	0	872
+natural-lose-turn	0	0	872
+standard-naturalized	0	0	872
+standard-normal-naturalized	0	0	872
+standard-passing-naturalized	0	0	872
+standard-lose-turn-naturalized	0	0	872
+
+pairwise disagreements (positions where the values differ)
+standard	standard-normal	872
+standard	standard-passing	872
+standard	standard-lose-turn	872
+standard	natural	872
+standard	natural-normal	872
+standard	natural-passing	872
+standard	natural-lose-turn	872
+standard-normal	standard-passing	0
+standard-normal	standard-lose-turn	0
+standard-normal	natural	0
+standard-normal	natural-normal	0
+standard-normal	natural-passing	0
+standard-normal	natural-lose-turn	0
+standard-passing	standard-lose-turn	0
+standard-passing	natural	0
+standard-passing	natural-normal	0
+standard-passing	natural-passing	0
+standard-passing	natural-lose-turn	0
+standard-lose-turn	natural	0
+standard-lose-turn	natural-normal	0
+standard-lose-turn	natural-passing	0
+standard-lose-turn	natural-lose-turn	0
+natural	natural-normal	0
+natural	natural-passing	0
+natural	natural-lose-turn	0
+natural-normal	natural-passing	0
+natural-normal	natural-lose-turn	0
+natural-passing	natural-lose-turn	0
+
+witnesses
+standard	standard-normal	8/8/8/8/8/8/4Q3/K1k5 b - - 0 1	draw	loss0
+standard	standard-passing	8/8/8/8/8/8/2Q5/k1K5 b - - 0 1	draw	loss2
+standard	standard-lose-turn	8/8/8/8/8/8/2Q5/k1K5 b - - 0 1	draw	loss2
+standard	natural	8/8/8/8/8/8/4Q3/K1k5 b - - 0 1	draw	loss2
+standard	natural-normal	8/8/8/8/8/8/4Q3/K1k5 b - - 0 1	draw	loss2
+standard	natural-passing	8/8/8/8/8/8/2Q5/k1K5 b - - 0 1	draw	loss4
+standard	natural-lose-turn	8/8/8/8/8/8/4Q3/K1k5 b - - 0 1	draw	loss2
+
+bridges (naturalized standard game vs natural game of the same convention)
+standard-naturalized	natural	disagreements 0	distance (natural - naturalized): [(2, 346276)]
+standard-normal-naturalized	natural-normal	disagreements 0	distance (natural - naturalized): [(2, 346276)]
+standard-passing-naturalized	natural-passing	disagreements 0	distance (natural - naturalized): [(2, 346276)]
+standard-lose-turn-naturalized	natural-lose-turn	disagreements 0	distance (natural - naturalized): [(2, 346276)]

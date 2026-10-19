@@ -20,6 +20,18 @@ import Chess
     chess hunt ...                           search for positions where rule sets differ
     chess endgame MATERIAL A B EXAMPLES      tablebases of K+MATERIAL v K under A and B, compared
     chess endgame-value MATERIAL RULES FEN   exact value of one position
+    chess exact RULES FEN                    exact value of a position (retrograde analysis of
+                                             every position reachable from it)
+    chess grid-endgame MATERIAL              tablebases of K+MATERIAL v K under the 8 games of
+                                             Hamkins' grid (and the bridges), compared pairwise
+    chess line MATERIAL RULES FEN            a line of best play, from the tablebase of K+MATERIAL v K
+    chess explain MATERIAL RULES FEN         the same line, with the value of every alternative
+    chess longest-wins MATERIAL RULES N      the N positions of K+MATERIAL v K with the longest wins
+    chess grid-verdicts HORIZON              FENs on stdin -> bounded verdicts under the grid
+                                             games and the bridges (TSV)
+    chess miniature EXTRAS                   every standard checkmate with K+R(s) at home, the
+                                             black king and up to EXTRAS more pieces, where the
+                                             mated side can castle to safety (FENs)
 -/
 
 open Chess
@@ -255,6 +267,122 @@ def run : List String → IO Unit
     match tb.value? pos rs with
     | some v => IO.println s!"{rs.name}: {v} (for {pos.turn})"
     | none => IO.println "position not in the tablebase (wrong material?)"
+  | "exact" :: name :: fen => do
+    let (rs, pos) := (← getRules name, ← getPosition fen)
+    let ((v, n), ms) ← timed fun _ => Grid.exactValue rs pos
+    IO.println s!"{rs.name}: {v} (for {pos.turn}; {n} positions, {ms} ms)"
+  | ["grid-endgame", material] => do
+    let extra := material.toList.filterMap Piece.ofChar?
+    let start := (allPlacements extra).filter Standard.rules.isValid
+    let sets := Variants.grid ++ Variants.gridBridges.map (·.1)
+    IO.println s!"K{material}K: {start.size} standard-valid positions (value for the player to move)"
+    IO.println "rule set\twin\tdraw\tloss\tlongest win (plies)\tgraph size\tms"
+    let mut values : Array (Array Value) := #[]
+    for rs in sets do
+      let ((vs, n), ms) ← timed fun _ => Grid.startValues rs start
+      let (w, d, l) := Grid.counts vs
+      let longest := vs.foldl (fun m v => if v.sign == 1 then max m v.plies else m) 0
+      IO.println s!"{rs.name}\t{w}\t{d}\t{l}\t{longest}\t{n}\t{ms}"
+      values := values.push vs
+    -- the standard stalemates (player to move stalemated), valued by each game
+    let stalemates := (List.range start.size).filter fun k =>
+      Standard.rules.status start[k]! == .over ⟨.draw, "stalemate"⟩
+    IO.println s!"\n{stalemates.length} standard stalemates, valued for the stalemated player (win/draw/loss)"
+    for (rs, vs) in sets.zip values.toList do
+      let (w, d, l) := Grid.counts (stalemates.map (vs[·]!)).toArray
+      IO.println s!"{rs.name}\t{w}\t{d}\t{l}"
+    let names := sets.map (·.name) |>.toArray
+    let g := Variants.grid.length
+    IO.println "\npairwise disagreements (positions where the values differ)"
+    for r in Grid.comparePairs start (values.extract 0 g) do
+      IO.println s!"{names[r.a]!}\t{names[r.b]!}\t{r.disagreements}"
+    IO.println "\nwitnesses"
+    for r in Grid.comparePairs start (values.extract 0 g) do
+      if let some (p, a, b) := r.witness then
+        IO.println s!"{names[r.a]!}\t{names[r.b]!}\t{p.toFen}\t{a}\t{b}"
+    IO.println "\nbridges (naturalized standard game vs natural game of the same convention)"
+    for ((s, n), i) in Variants.gridBridges.zipIdx do
+      let some ni := Variants.grid.findIdx? (·.name == n.name) | continue
+      let (dis, deltas) := Grid.compareBridge values[g + i]! values[ni]!
+      IO.println s!"{s.name}\t{n.name}\tdisagreements {dis}\tdistance (natural - naturalized): {deltas}"
+  | "line" :: material :: name :: fen => do
+    -- a line of best play from the tablebase of K+MATERIAL v K: the winner plays a fastest win,
+    -- the loser a longest defence
+    let (rs, pos) := (← getRules name, ← getPosition fen)
+    let extra := material.toList.filterMap Piece.ofChar?
+    let tb := solveEndgame rs ((allPlacements extra).filter Standard.rules.isValid)
+    let mut p := pos
+    let mut sans := #[]
+    let start := tb.value? pos rs
+    for _ in List.range 80 do
+      let some v := tb.value? p rs | break
+      let target : Option Value := match v with
+        | .win (d + 1) => some (.loss d)
+        | .loss (d + 1) => some (.win d)
+        | _ => none
+      let some t := target | break
+      let some m := (rs.legalMoves p).find? fun m => tb.value? (p.play m) rs == some t | break
+      sans := sans.push (san rs p m)
+      p := p.play m
+    IO.println s!"{rs.name}: {start.map toString |>.getD "?"} for {pos.turn}: {String.intercalate " " sans.toList}"
+    IO.println s!"final position: {p.toFen}  ({rs.status p})"
+  | "explain" :: material :: name :: fen => do
+    -- the line of `line`, with the alternatives: for the winner, every move that wins as fast;
+    -- for the loser, what each move (or pass) leads to, from his point of view
+    let (rs, pos) := (← getRules name, ← getPosition fen)
+    let extra := material.toList.filterMap Piece.ofChar?
+    let tb := solveEndgame rs ((allPlacements extra).filter Standard.rules.isValid)
+    let forMover : Value → String
+      | .win k => s!"loses in {k + 1}"
+      | .loss k => s!"wins in {k + 1}"
+      | .draw => "draws"
+    let mut p := pos
+    for _ in List.range 80 do
+      let some v := tb.value? p rs | break
+      let target : Option Value := match v with
+        | .win (d + 1) => some (.loss d)
+        | .loss (d + 1) => some (.win d)
+        | _ => none
+      let some t := target | break
+      let options := (rs.legalMoves p).filterMap fun m => (tb.value? (p.play m) rs).map (m, ·)
+      let some (m, _) := options.find? (·.2 == t) | break
+      let label := s!"{p.fullmoveNumber}{if p.turn == .white then "." else "..."} {san rs p m}"
+      if v.sign == 1 then
+        let also := (options.filter fun (m', w) => w == t && m' != m).map (san rs p ·.1)
+        IO.println s!"{label}  ({v}; as fast: {if also.isEmpty then "none" else String.intercalate " " also})"
+      else
+        let opts := options.map fun (m', w) => s!"{san rs p m'} {forMover w}"
+        IO.println s!"{label}  ({v}; plies after each option: {String.intercalate ", " opts})"
+      p := p.play m
+    IO.println s!"final position: {p.toFen}  ({rs.status p})"
+  | ["longest-wins", material, name, count] => do
+    -- the positions of K+MATERIAL v K with the longest forced wins under a rule set
+    let (rs, k) := (← getRules name, ← getNat count)
+    let extra := material.toList.filterMap Piece.ofChar?
+    let start := (allPlacements extra).filter Standard.rules.isValid
+    let (vs, _) := Grid.startValues rs start
+    let wins := (start.zip vs).filter (·.2.sign == 1)
+    for (p, v) in (wins.qsort fun a b => a.2.plies > b.2.plies).toList.take k do
+      IO.println s!"{p.toFen}\t{v}"
+  | ["grid-verdicts", horizon] => do
+    let h ← getNat horizon
+    let sets := Variants.grid ++ Variants.gridBridges.map (·.1)
+    let lines ← readLines
+    IO.println ("fen\t" ++ String.intercalate "\t" (sets.map (·.name)))
+    let rows := parallelMap (fun (fen : String) =>
+      match Position.ofFen fen with
+      | .error e => s!"{fen}\tERROR {e}"
+      | .ok pos => String.intercalate "\t" (fen :: Grid.gridVerdicts sets pos h)) lines (chunk := 4)
+    for r in rows do IO.println r
+  | ["miniature", extras] => do
+    let k ← getNat extras
+    let jobs := Hunt.castlingConfigs.flatMap fun sides => Square.all.map fun bk => (sides, bk)
+    let tasks := jobs.map fun (sides, bk) => Task.spawn fun _ => Hunt.castlingEscapes sides bk k
+    let results := tasks.map Task.get
+    for (found, _, _) in results do
+      for p in found do IO.println p.toFen
+    let total := results.foldl (fun (v, m, f) (found, v', m') => (v + v', m + m', f + found.size)) (0, 0, 0)
+    IO.eprintln s!"{total.1} valid positions, {total.2.1} checkmates, {total.2.2} with a safe castling"
   | _ => IO.println "usage: see the header of Main.lean (chess rules | variants | diff | show | play | perft | stats | divide | solve | legal-batch | compare)"
 
 def main (args : List String) : IO Unit := run args

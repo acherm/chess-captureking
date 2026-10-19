@@ -13,10 +13,19 @@ namespace Chess
 namespace Variants
 
 /-- A player with no legal move passes (Hamkins' commenter's "null move" proposal), so that a
-"checkmated" player who cannot move at all still gets his king captured. -/
+"checkmated" player who cannot move at all still gets his king captured. Hamkins calls this
+*lose-your-turn* chess; Davidson reports it from twelfth- and thirteenth-century France. -/
 def passIfNoMove : MovementRule where
   name := "passIfNoMove"
-  doc := "A player who has no legal move passes (null move)."
+  doc := "A player who has no legal move passes (null move): he loses his turn."
+  candidates _ := [Move.null]
+
+/-- A player may pass at any time, as in Go (Hamkins: *chess with passing*). The pass is still
+subject to the legality rules: in standard chess a player in check cannot pass, since the pass
+would leave the king in check (`Standard.noSelfCheck`). -/
+def passAnyTime : MovementRule where
+  name := "passAnyTime"
+  doc := "A player may pass (null move) instead of moving, at any time, as in Go."
   candidates _ := [Move.null]
 
 def noLegalMoveLoses : EndingRule where
@@ -33,14 +42,17 @@ def stalemateWins : EndingRule where
     if !pos.isInCheck pos.turn && sit.noLegalMove.get then some (Result.winner pos.turn.opponent)
     else none
 
-/-- Natural chess where a player with no legal move passes. -/
-def naturalPass : RuleSet :=
-  Natural.rules.renamed "natural-pass"
+/-- Natural chess where a player with no legal move passes (Hamkins' *lose-your-turn* natural
+chess). The ending `noLegalMove` is dropped: it can no longer apply. -/
+def naturalLoseTurn : RuleSet :=
+  Natural.rules.renamed "natural-lose-turn"
+    |>.withoutEndings [Natural.noLegalMove]
     |>.withFallback [passIfNoMove]
 
-/-- Natural chess where a player with no legal move loses. -/
-def naturalNoMoveLoses : RuleSet :=
-  Natural.rules.renamed "natural-nomove-loses"
+/-- Natural chess where a player with no legal move loses (Hamkins' *normal* natural chess:
+the normal-play convention of combinatorial game theory). -/
+def naturalNormal : RuleSet :=
+  Natural.rules.renamed "natural-normal"
     |>.replacingEnding Natural.noLegalMove noLegalMoveLoses
 
 /-- Natural chess keeping the (insufficient material) dead-position rule of standard chess. -/
@@ -151,10 +163,104 @@ def naturalStandardized : RuleSet :=
     |>.replacingEnding Standard.seventyFiveMoves seventyFiveMovesUnlessDecided
     |>.replacingEnding Standard.fivefoldRepetition (givingWayToKingCapture Standard.fivefoldRepetition)
 
+/-! ### Hamkins' grid of variants
+
+*Every game of chess ends prematurely* closes with the question: how many variations are there,
+and which are equivalent? Two winning conditions (checkmate; capture of the king) times four
+conventions for a player who cannot, or would rather not, move:
+
+| convention | standard | natural |
+|---|---|---|
+| ordinary: stalemate is a draw (natural: having no move at all is a draw) | `standard` | `natural` |
+| normal play: a player with no legal move loses | `standard-normal` | `natural-normal` |
+| passing: a player may pass at any time | `standard-passing` | `natural-passing` |
+| lose your turn: a player with no legal move passes | `standard-lose-turn` | `natural-lose-turn` |
+
+GRID_VARIANTS.md compares them pairwise. -/
+
+/-- Standard chess with the normal-play convention: a player with no legal move loses, in check
+(checkmate) or not (stalemate). The dead-position rule is dropped as well: FIDE 5.2.2 means
+"no player can win", and once stalemate wins, insufficient material no longer implies it (K+B v K
+and K+N v K can be won by stalemating the lone king). -/
+def standardNormal : RuleSet :=
+  Standard.rules.renamed "standard-normal"
+    |>.withoutEndings [Standard.checkmate, Standard.stalemate, Standard.deadPosition]
+    |>.withEndingsFirst [noLegalMoveLoses]
+
+/-- Standard chess where a player may pass at any time, but not out of check. Stalemate can no
+longer occur, so its rule is dropped. The dead-position rule stays sound: insufficient material
+cannot checkmate, whatever the passes. -/
+def standardPassing : RuleSet :=
+  Standard.rules.renamed "standard-passing"
+    |>.withMovement [passAnyTime]
+    |>.withoutEndings [Standard.stalemate]
+
+/-- Standard chess where a stalemated player loses his turn instead of drawing (Hamkins'
+*lose-your-turn* chess). A checkmated player cannot pass (the pass would leave his king in
+check), so checkmate still ends the game. -/
+def standardLoseTurn : RuleSet :=
+  Standard.rules.renamed "standard-lose-turn"
+    |>.withoutEndings [Standard.stalemate]
+    |>.withFallback [passIfNoMove]
+
+/-- Natural chess where a player may pass at any time (passing while the king is attacked simply
+loses it). No player is ever without a move, so `noLegalMove` is dropped. -/
+def naturalPassing : RuleSet :=
+  Natural.rules.renamed "natural-passing"
+    |>.withMovement [passAnyTime]
+    |>.withoutEndings [Natural.noLegalMove]
+
+/-- The grid, standard column first. -/
+def grid : List RuleSet :=
+  [Standard.rules, standardNormal, standardPassing, standardLoseTurn,
+   Natural.rules, naturalNormal, naturalPassing, naturalLoseTurn]
+
+/-! ### The grid, naturalized convention by convention
+
+`standard-naturalized` has the values of natural chess. The same construction applies to every
+convention of the grid: standard chess with castling freed from the conditions on attacked
+squares, no dead-position rule, and the convention for a player who cannot move transposed to
+natural chess, where a stalemated player who has a piece to move must move it (and lose his
+king). The hypothesis (GRID_VARIANTS.md) is that each of these has the values of the natural
+game of the same convention. -/
+
+def standardNormalNaturalized : RuleSet :=
+  standardNormal.renamed "standard-normal-naturalized"
+    |>.withoutLegality [Standard.castlingNotOutOfCheck, Standard.castlingNotThroughCheck]
+
+def standardPassingNaturalized : RuleSet :=
+  standardPassing.renamed "standard-passing-naturalized"
+    |>.withoutLegality [Standard.castlingNotOutOfCheck, Standard.castlingNotThroughCheck]
+    |>.withoutEndings [Standard.deadPosition]
+
+/-- Natural lose-your-turn chess, seen from standard chess: a player passes only when none of
+his pieces can move at all; a stalemated player who has a piece to move must move it. -/
+def stalemateLosesUnlessBlocked : EndingRule where
+  name := "stalemateLosesUnlessBlocked"
+  doc := "A player who is not in check, and whose only legal move is to pass, loses if one of his pieces could move (exposing his king); he passes only if none can move at all."
+  judge sit :=
+    let pos := sit.position
+    if !pos.isInCheck pos.turn && sit.legalMoves.get.all (·.isNull) &&
+        !(Standard.rules.candidates pos).isEmpty
+    then some (Result.winner pos.turn.opponent) else none
+
+def standardLoseTurnNaturalized : RuleSet :=
+  standardLoseTurn.renamed "standard-lose-turn-naturalized"
+    |>.withoutLegality [Standard.castlingNotOutOfCheck, Standard.castlingNotThroughCheck]
+    |>.withoutEndings [Standard.deadPosition]
+    |>.withEndingsFirst [stalemateLosesUnlessBlocked]
+
+/-- Each natural game of the grid with its naturalized standard counterpart. -/
+def gridBridges : List (RuleSet × RuleSet) :=
+  [(standardNaturalized, Natural.rules), (standardNormalNaturalized, naturalNormal),
+   (standardPassingNaturalized, naturalPassing), (standardLoseTurnNaturalized, naturalLoseTurn)]
+
 def all : List RuleSet :=
-  [Standard.rules, Natural.rules, naturalPass, naturalNoMoveLoses, naturalDead,
+  [Standard.rules, Natural.rules, naturalLoseTurn, naturalNormal, naturalDead,
    naturalFideCastling, standardFreeCastling, standardStalemateWins, naturalNoSuicide,
-   standardNaturalized, naturalStandardized]
+   standardNaturalized, naturalStandardized,
+   standardNormal, standardPassing, standardLoseTurn, naturalPassing,
+   standardNormalNaturalized, standardPassingNaturalized, standardLoseTurnNaturalized]
 
 def byName? (name : String) : Option RuleSet := all.find? (·.name == name)
 

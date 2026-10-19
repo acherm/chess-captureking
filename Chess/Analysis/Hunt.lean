@@ -8,8 +8,8 @@ import Chess.Solver
 
 Random positions are generated (with a bias towards positions where castling matters: the king
 of the player to move on its original square, with castling rights), and kept when they belong
-to one of the kinds of divergence that J. D. Hamkins announces in *Every game of chess ends
-prematurely*:
+to one of the kinds of divergence that J. D. Hamkins exhibits in *Every game of chess ends
+prematurely* (one position each):
 
 1. wins in standard chess where, in natural chess, the king cannot be captured
    (`castleEscape`: the checkmated player castles out of check; `noMove`: the checkmated player
@@ -17,6 +17,9 @@ prematurely*:
 2. draws in standard chess that are wins in natural chess (`stalemateLoses`);
 3. immediate wins in standard chess that are losses in natural chess (`opposite`: the
    checkmated player castles out of check and then wins by force).
+
+An exhaustive search (`castlingEscapes`, at the end) finds the smallest positions of the third
+kind.
 -/
 
 namespace Chess
@@ -166,6 +169,65 @@ def byName? : String → Option (Position → Option String)
   | "stalemate-opposite" => some (stalemateOpposite 3)
   | "stalemate-opposite5" => some (stalemateOpposite 5)
   | _ => none
+
+/-! ## Exhaustive search for small opposite-outcome positions
+
+In a standard checkmate, every natural move other than castling leaves the king attacked, and
+loses it at once. An opposite outcome therefore needs a checkmated player who castles out of
+check. It is enough to look at positions where the player to move (White, by symmetry of
+colours) has the king on e1 and a rook on a1 or h1 (or both) with the corresponding castling
+rights, plus the black king and a few more pieces. Black needs no castling right and there
+is no en passant target: removing them changes neither the standard checkmate nor White's
+first move (the castling), and only takes defences away from Black afterwards. -/
+
+/-- The ten kinds of pieces other than kings. -/
+def extraPieces : List Piece :=
+  [Color.white, .black].flatMap fun c => pieceKinds.map fun k => ⟨c, k⟩
+
+/-- The boards obtained by adding `k` pieces of `extraPieces` to `b`, on empty squares (pawns
+not on the first or last rank). Each set of pieces is produced once: the codes
+`piece * 64 + square` of the added pieces increase. -/
+def addPieces (b : Board) : Nat → Nat → List Board
+  | 0, _ => [b]
+  | k + 1, first =>
+    (List.range' first (64 * extraPieces.length - first)).flatMap fun code =>
+      let p := extraPieces[code / 64]!
+      let s := Square.ofIndex (code % 64)
+      if b.isEmpty s && (p.kind != .pawn || (s.rank != 0 && s.rank != 7)) then
+        addPieces (b.set s (some p)) k (code + 1)
+      else []
+
+/-- The three ways for White to keep a castling right: queenside, kingside, both. -/
+def castlingConfigs : List (List CastlingSide) := [[.queenside], [.kingside], [.kingside, .queenside]]
+
+/-- All positions with White to move, the white king on e1 with the rooks and castling rights
+of `sides`, the black king on `bk` and `extras` more pieces, that are valid in standard chess
+and where White is checkmated but can castle to a square where the king is not attacked (in
+natural chess). Also returns the number of valid positions and of checkmates examined. -/
+def castlingEscapes (sides : List CastlingSide) (bk : Square) (extras : Nat) :
+    Array Position × Nat × Nat := Id.run do
+  let home := (castlingGeometry .white .kingside).kingFrom
+  let mut b := Board.empty.set home (some ⟨.white, .king⟩)
+  for side in sides do
+    b := b.set (castlingGeometry .white side).rookFrom (some ⟨.white, .rook⟩)
+  if !b.isEmpty bk then return (#[], 0, 0)
+  b := b.set bk (some ⟨.black, .king⟩)
+  let castling : CastlingRights :=
+    { whiteKingside := sides.contains .kingside, whiteQueenside := sides.contains .queenside,
+      blackKingside := false, blackQueenside := false }
+  let mut found := #[]
+  let mut valid := 0
+  let mut mates := 0
+  for k in List.range (extras + 1) do
+    for board in addPieces b k 0 do
+      let pos : Position := { board, turn := .white, castling, epTarget := none,
+                              halfmoveClock := 0, fullmoveNumber := 1 }
+      if Standard.rules.isValid pos then
+        valid := valid + 1
+        if isCheckmate pos then
+          mates := mates + 1
+          if (castleEscape pos).isSome then found := found.push pos
+  return (found, valid, mates)
 
 /-- Try `attempts` random positions from `gen`; return the ones `pred` accepts (at most
 `wanted`), with their descriptions, and the number of valid positions generated. -/

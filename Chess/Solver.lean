@@ -17,7 +17,8 @@ taken into account (the search sees positions, not games).
 namespace Chess
 
 /-- Order moves so that forcing moves are tried first: captures of a king, then other captures,
-then the rest. (Only affects speed.) -/
+then the rest. (Only affects speed: a win is found, and a defence refuted, sooner; in natural
+chess a move that hands over the king is refuted at once by its capture.) -/
 def orderForSearch (pos : Position) (moves : List Move) : List Move :=
   let isKingCapture (m : Move) := match pos.captured? m with
     | some ⟨_, .king⟩ => true
@@ -48,7 +49,7 @@ def mustLose (rs : RuleSet) (pos : Position) : Nat → Bool
     let sit := rs.situation pos
     match rs.outcome? sit with
     | some o => o.result == Result.winner pos.turn.opponent
-    | none => sit.legalMoves.get.all fun m => canWin rs (pos.play m) d
+    | none => (orderForSearch pos sit.legalMoves.get).all fun m => canWin rs (pos.play m) d
 
 end
 

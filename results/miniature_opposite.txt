@@ -1,0 +1,20 @@
+# Exhaustive search for small opposite outcomes (REPORT §3.4)
+#
+# chess miniature 2 enumerates every position with White to move, Ke1 with a rook on a1 and/or
+# h1 and the castling right(s), the black king, and up to 2 more pieces of any kind and colour
+# (no castling right for Black, no en passant target), valid in standard chess:
+#   19,086,943 valid positions, 32,070 checkmates, 23,225 where castling reaches a safe square
+#   (data/positions/castle_escape_small.fen).
+# Their natural values, by bounded search (chess solve-batch natural H), by number of pieces:
+#
+# pieces   positions   H=5: loss / undecided   H=7: loss / undecided / win
+#   4           18        0 / 18                  0 / 18 / 0
+#   5       18,407        (see below)              5,980 / 12,426 / 1
+#   6        4,800                                 1,342 /  3,457 / 1   (both rooks at home)
+#   all     23,225    2,977 / 20,248               7,322 / 15,901 / 2
+#
+# The 4-piece positions, deeper (H=13, chess solve-batch natural 13): 2 losses, 16 undecided, no win.
+#
+# Opposite outcomes found (the checkmated side wins in natural chess):
+8/8/8/8/8/8/3Q4/R3Kqk1 w Q - 0 1	5 pieces	win in 7 plies (1. O-O-O)
+8/8/8/8/5Q2/3k4/4q3/R3K2R w KQ - 0 1	6 pieces	win in 7 plies

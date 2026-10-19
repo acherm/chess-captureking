@@ -144,7 +144,29 @@ def shallow : List Check := [
   gameCheck Natural.rules "K v K is not a dead position" [] ongoing
     (fen := "8/8/8/4k3/8/8/8/4K3 w - - 0 1"),
   illegalCheck Natural.rules "moving after the king capture" ["e4", "f6", "Qh5", "Kf7", "Qxf7", "e6"]
-    "the game is over"
+    "the game is over",
+  -- Hamkins' grid: normal play, passing, lose-your-turn
+  gameCheck Variants.standardNormal "stalemate loses" ["Qc7"] (overWith .whiteWins "noLegalMoveLoses")
+    (fen := "k7/8/1Q6/8/8/8/8/1K6 w - - 0 1"),
+  gameCheck Variants.standardPassing "a pass" ["0000", "Ke7"] ongoing
+    (fen := "4k3/8/8/8/8/8/8/3RK3 w - - 0 1"),
+  gameCheck Variants.standardPassing "a pass with a king on a1 (the square encoding the pass)"
+    ["0000"] ongoing (fen := "4k3/8/8/8/8/8/8/K2R4 w - - 0 1"),
+  illegalCheck Variants.standardPassing "passing out of check" ["0000"] "noSelfCheck"
+    (fen := "4r1k1/8/8/8/8/8/8/4K2R w K - 0 1"),
+  gameCheck Variants.standardPassing "stalemate: the player passes" ["Qc7", "0000"] ongoing
+    (fen := "k7/8/1Q6/8/8/8/8/1K6 w - - 0 1"),
+  gameCheck Variants.standardLoseTurn "stalemate: the player loses his turn"
+    ["Qc7", "0000", "Kc2", "0000", "Kc3", "0000", "Kc4", "0000", "Kc5", "0000", "Kb6", "0000", "Qb7#"]
+    (overWith .whiteWins "checkmate") (fen := "k7/8/1Q6/8/8/8/8/1K6 w - - 0 1"),
+  illegalCheck Variants.standardLoseTurn "passing when a move is possible" ["0000"]
+    "not a move of any piece" (fen := "4k3/8/8/8/8/8/8/3RK3 w - - 0 1"),
+  gameCheck Variants.naturalPassing "passing with the king attacked loses it" ["0000", "Rxe1"]
+    (overWith .blackWins "kingCaptured") (fen := "4r1k1/8/8/8/8/8/8/4K2R w K - 0 1"),
+  gameCheck Variants.naturalLoseTurn "no move at all: the player passes" ["0000"] ongoing
+    (fen := "KRBk4/PPnP4/8/8/8/8/8/8 w - - 1 2"),
+  gameCheck Variants.naturalNormal "no move at all: the player loses" []
+    (overWith .blackWins "noLegalMoveLoses") (fen := "KRBk4/PPnP4/8/8/8/8/8/8 w - - 1 2")
 ]
 
 def deep : List Check := [
@@ -179,6 +201,22 @@ def deep : List Check := [
         | some (.loss x), some (.loss y) => y == x + 2
         | some .draw, some .draw => true
         | _, _ => false },
+  { name := "Hamkins' K+R v K position is drawn with passing (exact, standard and natural)",
+    ok := fun _ =>
+      let pos := Position.ofFen! "8/8/8/8/2r5/4k3/8/3K4 w - - 0 1"
+      (Grid.exactValue Variants.standardPassing pos).1 == .draw &&
+        (Grid.exactValue Variants.naturalPassing pos).1 == .draw &&
+        (Grid.exactValue Standard.rules pos).1 == .loss 2 },
+  { name := "KRK and KBK tablebases: each naturalized grid game has the values of its natural game, 2 plies shorter",
+    ok := fun _ => [[⟨.white, .rook⟩], [⟨.white, .bishop⟩]].all fun extra =>
+      let start := (allPlacements extra).filter Standard.rules.isValid
+      Variants.gridBridges.all fun (s, n) =>
+        let (a, b) := ((Grid.startValues s start).1, (Grid.startValues n start).1)
+        (List.range start.size).all fun k => match a[k]!, b[k]! with
+          | .win x, .win y => y == x + 2
+          | .loss x, .loss y => y == x + 2
+          | .draw, .draw => true
+          | _, _ => false },
   perftCheck Natural.rules "initial" initial 5 4897256,
   perftCheck Natural.rules "initial" initial 6 120909363
 ]

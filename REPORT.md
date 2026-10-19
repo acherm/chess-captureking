@@ -2,13 +2,22 @@
 
 *Natural chess* (J. D. Hamkins, [*Every game of chess ends prematurely*](https://www.infinitelymore.xyz/p/chess-games-end-one-move-early))
 keeps the pieces and their moves but "abandons the rules about check and checkmate, adopting
-instead the goal of capturing the opposing king". Hamkins claims it is "almost equivalent to
-standard chess" but "not quite fully equivalent", and announces three kinds of distinguishing
-positions: (1) standard wins where the king cannot be captured in natural chess, (2) standard draws
-that are natural wins, (3) immediate standard wins that are natural losses.
+instead the goal of capturing the opposing king". Hamkins shows that it is "almost equivalent to
+standard chess" but "not quite fully equivalent", with one position of each of three kinds:
+(1) standard wins where the king cannot be captured in natural chess (a checkmate that leaves the
+mated player without any move), (2) standard draws that are natural wins (a stalemate, suggested by
+David Madore), (3) immediate standard wins that are natural losses (a checkmate escaped by
+castling out of and through check).
 
-This report checks the claim with two Lean engines that share all their code except a
-nine-line delta, and reports every interpretation choice that the formalization forced.
+This report formalizes both games with two Lean engines that share all their code except a
+nine-line delta, machine-checks Hamkins' positions (§3.4), measures how often and how much the
+games differ, explains the difference exactly (§3.6), and reports every interpretation choice
+that the formalization forced (§4). The comparison of Hamkins' further variations (normal play,
+passing, lose-your-turn) is in [GRID_VARIANTS.md](GRID_VARIANTS.md).
+
+*Note.* The first version of this report was written from the free preview of the essay, which
+announces the three kinds but shows none of the positions. Hamkins' positions, and his arguments
+on castling and stalemate, are now credited where they apply.
 
 ## Summary
 
@@ -30,7 +39,8 @@ nine-line delta, and reports every interpretation choice that the formalization 
 * **Perft differs** from the initial position at depth 4: 197,742 vs 197,281. All 461 extra
   sequences come from 134 positions after 3 plies (e.g. 1. c3 d6 2. Qa4+, where Black has 21 extra
   moves). The difference decomposes exactly over these divergence points (depth 5: 16,733 + 14,914 = 31,647).
-* **Non-equivalence**, all three of Hamkins' kinds, with real games where possible:
+* **Non-equivalence**: Hamkins' three positions are machine-checked (§3.4), and each kind also
+  occurs in real games or in smaller constructed positions:
   * (1) **508 of 72,691 real Lichess checkmates (0.70%)** are not checkmates in natural chess: the
     mated player castles out of check to safety. In 448 of them the castler is still not lost within
     7 plies. Example: Lichess RSJfq4Su, 9... Qxe2# 0-1, where 10. O-O escapes. A mate in 2 of
@@ -40,8 +50,9 @@ nine-line delta, and reports every interpretation choice that the formalization 
     e.g. the textbook KPK stalemate of Lichess NZ2sKoBF. Even K+B v K, a dead position in standard
     chess, has natural wins: 9,356 of 417,228 positions (2.2%).
   * (3) **Opposite outcomes**: positions where the side to move is checkmated in standard chess
-    (lost), yet wins by force in natural chess by castling out of check. Found by targeted search and
-    machine-checked; none occurs among the real games examined.
+    (lost), yet wins by force in natural chess by castling out of check. Hamkins' example has 12
+    pieces; targeted search found one with 6, and an exhaustive search finds one with 5 and none
+    with 4 (up to 13 plies, §3.4). None occurs among the real games examined.
 * **Exact tablebases** (retrograde analysis, any rule set): no standard win or loss changes, but
   **33% of the KPK draws are decisive in natural chess**, and so are 2.2% of KBK and 0.8% of KNK positions.
 * **Two "bridges"** make the result exact in both directions: `standard-naturalized` (standard
@@ -116,7 +127,7 @@ about 10× faster since it needs no legality test.
   1,711 insufficient-material positions from Lichess (legal moves, SAN of every move, check, status).
   Also 0 mismatches on the final status of 20,000 complete games, including 4 fivefold repetitions,
   127 stalemates and 113 dead positions.
-* `Tests.lean`: 50 tests (65 with `--deep`, including both tablebase bridge equivalences) on perft, counters and rule-specific situations
+* `Tests.lean`: 60 tests (77 with `--deep`, including the tablebase bridge equivalences) on perft, counters and rule-specific situations
   (en passant exposing the king along a rank, castling through/out of/into check, 75 moves vs mate, …).
 
 ---
@@ -338,9 +349,10 @@ Checkmates and stalemates in detail:
 * **Stalemates.** All 1,956 are natural losses in 2 plies for the stalemated player. Example,
   Lichess [NZ2sKoBF](https://lichess.org/NZ2sKoBF) (rapid, 1919–1907): 71. h7+ Kh8 72. Kh6, the
   textbook K+P draw, which in natural chess is lost (theorem `stalemate_loses`). Castling never saves a
-  stalemated player, by a small structural argument. A castling candidate needs the squares next to
-  the rook empty, so the rook could legally step there: a corner rook never shields its own king,
-  and the stalemated king is not in check. Hence a standard stalemate is a natural loss unless no
+  stalemated player, by a small structural argument, the one Hamkins gives in the section
+  "Stalemate in natural chess" of his essay. A castling candidate needs the squares next to the
+  rook empty, so the rook could legally step there: a corner rook never shields its own king, and
+  the stalemated king is not in check. Hence a standard stalemate is a natural loss unless no
   piece can move at all.
 * **Deeper in the tree.** A mate in 2 can also fail: Lichess [t82cDrIb](https://lichess.org/t82cDrIb)
   (bullet), 19... Nd3+ mates next move in standard chess, but in natural chess White answers
@@ -365,19 +377,36 @@ than standard chess by doing so. Random playouts end in stalemate more often tha
 In both sets castling hardly matters, since the random mover rarely keeps the king at home with
 castling rights.
 
-### 3.4 Targeted search for Hamkins' three kinds
+### 3.4 Hamkins' positions, and targeted and exhaustive search
 
-`chess hunt KIND GENERATOR …` generates random positions, with a bias towards the configurations
-that matter (king at home with castling rights; few defenders), and keeps those of a given kind.
-Unless they come from real games, examples are filtered for plausible material (`scripts/plausible.py`)
-and the smallest are kept.
+**Hamkins' positions.** The diagrams of the essay, transcribed as FEN and machine-checked
+(`Chess/Theorems.lean`). Each one is a legal position: proof games reach them all
+(`Chess/ProofGames.lean`).
+
+| kind | Hamkins' position | standard chess | natural chess | theorem |
+|---|---|---|---|---|
+| (1) | `KRBkn3/PP1P4/8/8/8/8/8/8 b - - 0 1`, Black to move | 1... Nc7#, mate in 1 | after 1... Nc7 White has no move at all: drawn. Black cannot force a capture within 9 plies (the essay argues the draw; a bounded check) | `hamkins_no_move_mate` |
+| (2) | `1r6/K6k/8/1q6/8/8/8/8 w - - 0 1` (David Madore) | stalemate | White is lost in 2 plies | `hamkins_madore_stalemate` |
+| (3) | `5kr1/4p1p1/6B1/1b6/8/2p5/3q3P/1R2K2R w K - 0 1`, after 1... Qd2# | checkmate | 2. O-O, out of and through check, wins within 7 plies | `hamkins_castling` |
+| none: a mate by pinned pieces | `k6q/4K3/4P3/8/1r6/b4B2/8/Q7 b - - 0 1` | 1... Rb7#, mate in 1 | won within 3 plies | `hamkins_pinned` |
+| none: what checkmate means in natural chess | `K7/R7/q7/8/8/k7/8/8 b - - 0 1` | 1... Qc8 is illegal (the queen is pinned) | 1... Qc8 is legal but no checkmate: 2. Rxa3 takes the king first | `hamkins_qc8` |
+
+The essay also proves that a standard stalemate is, in natural chess, either a stalemate again or
+an immediate loss for the stalemated player (castling cannot help, the rook could move instead).
+That is the argument of §3.2, confirmed by the hunt `stalemate-escape` below and by all 1,956 real
+stalemates.
+
+**Targeted search.** `chess hunt KIND GENERATOR …` generates random positions, with a bias towards
+the configurations that matter (king at home with castling rights; few defenders), and keeps
+those of a given kind. Unless they come from real games, examples are filtered for plausible
+material (`scripts/plausible.py`) and the smallest are kept.
 
 | kind (Hamkins) | hunt | found | smallest / best example |
 |---|---|---|---|
 | (1) standard win, king not capturable: castling out of check | `castle-escape` | 0.9% of biased positions; **508 real games** | `8/8/8/8/4k3/8/1r6/1q2K2R w K -` (5 pieces): O-O blocks the queen |
-| (1) standard win, king not capturable: no move at all | `no-move` | 0 in 34M random valid positions | hand-made `KN1q4/PPpPk3/PnP5/8/8/8/8/8 w - -`: mate by Nb6, but no white piece can move, even into check; natural draw (theorem `no_move_checkmate`) |
+| (1) standard win, king not capturable: no move at all | `no-move` | 0 in 34M random valid positions | Hamkins' position above; hand-made `KN1q4/PPpPk3/PnP5/8/8/8/8/8 w - -`: mate by Nb6, but no white piece can move, even into check; natural draw (theorem `no_move_checkmate`) |
 | (2) standard draw, natural win | `stalemate-loses` | 0.1% of uniform positions; **all 1,956 real stalemates** | Lichess NZ2sKoBF; K+B v K `8/8/8/8/8/8/8/kBK5 w`: 1. Kc2 is stalemate in standard chess and wins in natural chess (theorem `bishop_wins`) |
-| (2') standard stalemate, natural escape by castling | `stalemate-escape` | 0 in 15.5M | impossible (argument above) |
+| (2') standard stalemate, natural escape by castling | `stalemate-escape` | 0 in 15.5M | impossible (argument above, and in the essay) |
 | (3) **opposite outcomes**: standard immediate loss, natural win | `opposite`, `opposite5` | 2 per 15.5M (natural win within 3 plies); 42 per 11.8M (within 5) | **`8/8/8/8/1Q6/3k4/4qP2/R3K3 w Q -`** (6 pieces) |
 | castling through check wins for the attacker | `castle-attack` | 40 per 1.6M | `1B2k2r/2N3r1/4r3/8/8/8/8/5K2 b k -`: O-O+ wins, standard has no mate in 1 |
 
@@ -385,7 +414,36 @@ and the smallest are kept.
 White to move is checkmated by Qe2, protected by the king on d3: **0-1 in standard chess**. In
 natural chess 1. O-O-O+ escapes with a rook check on the d-file. Every black defence then loses
 the king within 5 plies, e.g. 1... Qxd1+ 2. Kxd1, after which all eight moves of the black king
-expose it: **White wins**.
+expose it: **White wins**. Hamkins' own example has 12 pieces, and a commenter on the essay
+wished for a "miniaturized" one; this one has 6. It wins by a zugzwang, though: with passing
+allowed (GRID_VARIANTS.md) the black king would simply pass. Hamkins' example wins under every
+convention.
+
+**The smallest opposite outcome: 5 pieces.** An exhaustive search settles the size, up to a
+search horizon. In a standard checkmate, every natural move except castling leaves the king
+attacked, so an opposite outcome needs a mated player who castles out of check (and Black's
+castling rights or an en passant target can only help Black: they can be dropped).
+`chess miniature 2` enumerates every position with White to move, the white king on e1 with one
+or both rooks at home and their castling rights, the black king, and up to two more pieces of any
+kind and colour: 19,086,943 valid positions, 32,070 checkmates, of which 23,225 can be escaped by
+castling (`data/positions/castle_escape_small.fen`). Their natural values, by bounded search
+(`results/miniature_opposite.txt`):
+
+| pieces | escapable checkmates | natural win for the mated side |
+|---|---|---|
+| 4 | 18 | none within 13 plies |
+| 5 | 18,407 | none within 5 plies; **exactly one within 7 plies** |
+| 6 (both rooks at home) | 4,800 | one within 7 plies, `8/8/8/8/5Q2/3k4/4q3/R3K2R w KQ -` |
+
+The 5-piece position is `8/8/8/8/8/8/3Q4/R3Kqk1 w Q - 0 1` (theorem `opposite_outcome_5`; a
+52-ply proof game shows it is legal). White is mated by Qf1, protected by the king on g1. In
+natural chess 1. O-O-O puts the rook on d1, which pins the black queen to its king along the
+first rank: almost every queen move hands over the king. 1... Qxd1+ 2. Kxd1 leaves the lone king
+on g1 in a stalemate trap, and White wins within 7 plies. So the smallest opposite outcome has 5
+pieces, unless a 4-piece one exists with a win longer than 13 plies. Settling that would need
+4-piece tablebases of natural chess with castling rights, beyond the solver used here. Like
+the 6-piece miniature, it wins through a zugzwang: in natural chess with passing it is not a win
+(GRID_VARIANTS.md).
 
 **A further divergence found while formalizing, not in Hamkins' list.** The 75-move rule
 (FIDE 9.6.2) gives precedence to a checkmate delivered on the last move. Natural chess has no such
@@ -532,6 +590,14 @@ positions from real games (castling, stalemate) or by verified constructed posit
 75 moves), and the opposite-outcome positions of §3.4 combine the castling difference with a
 counter-attack.
 
+Hamkins reaches part of this picture by argument. In the section "Normal chess" he observes that
+counting stalemate as a win (normal play) does not align the two games, because of castling. His
+closing sentence then says that with normal play "the correspondence works perfectly", which his
+own castling position contradicts. The bridges give the exact version: normal-play natural chess
+has the values of normal-play standard chess once castling is freed from the attacked-squares
+condition (and the dead-position rule dropped, which normal play requires anyway).
+GRID_VARIANTS.md tests this, and the same construction for passing and lose-your-turn chess.
+
 ### 3.7 Machine-checked statements (`Chess/Theorems.lean`)
 
 | theorem | statement | checked by |
@@ -547,12 +613,17 @@ counter-attack.
 | `bishop_wins` | K+B v K: standard dead position, natural win in 3 plies (1. Kc2 is stalemate in standard chess) | `native_decide` |
 | `opposite_outcome` | standard checkmate (0-1); natural win for the mated side within 5 plies | `native_decide` |
 | `seventy_five_moves` | mate in 1 at half-move 148 in standard chess; natural draw by the 75-move rule | `native_decide` |
-| `no_move_checkmate` | standard checkmate; natural draw (no move at all); natural-with-pass: loss in 2 | `native_decide` |
+| `no_move_checkmate` | standard checkmate; natural draw (no move at all); natural lose-your-turn: loss in 2 | `native_decide` |
+| `hamkins_no_move_mate`, `hamkins_madore_stalemate`, `hamkins_castling` | Hamkins' three positions, one per kind (§3.4) | `native_decide` |
+| `hamkins_pinned`, `hamkins_qc8` | Hamkins' two positions that do not distinguish the games | `native_decide` |
+| `proofGame_*` (13 theorems, `Chess/ProofGames.lean`) | each constructed position and each of Hamkins' diagrams is reached by a game of standard chess from the initial position (every move legal, no earlier end of the game) | `native_decide` |
+| `hamkins_lose_turn`, `hamkins_double_stalemate`, `hamkins_rook_zugzwang`, `hamkins_castling_grid`, `hamkins_no_move_grid` (`Chess/GridTheorems.lean`) | the values of Hamkins' positions in the eight games of his grid (GRID_VARIANTS.md) | `native_decide` |
 
-`native_decide` evaluates the engine with compiled code. It therefore trusts the Lean compiler in
-addition to the kernel, and the correctness of the engine itself, which perft and the
-python-chess cross-validation support. The two general theorems are kernel-checked proofs about the
-rule-set definitions, valid for every position.
+`native_decide` runs the engine through the Lean compiler's evaluator, outside the kernel. It
+therefore trusts the compiler in addition to the kernel, and the correctness of the engine
+itself, which perft and the python-chess cross-validation support. The two general theorems are
+kernel-checked proofs about the rule-set definitions, valid for every position. The proof games
+are also checked independently with python-chess (`scripts/proofgame_check.py`).
 
 ---
 
@@ -569,15 +640,19 @@ transcribing the Laws themselves.
    capture: 1.4.1 (do not capture the king), 3.9.2 (do not expose/leave your king in check),
    3.8.2.2 (castling not out of, through, or into check). All four are dropped. Castling *into*
    check needs no rule of its own: it is just a move that hands over the king. Variant
-   `natural-fide-castling` keeps the castling conditions.
+   `natural-fide-castling` keeps the castling conditions. The essay makes the same choice
+   explicitly: "I am inclined to take natural chess as allowing castling out of, into, and through
+   check".
 2. **Castling across an attacked square.** Some king-capture programs let the opponent capture
-   the king "in passing" on the square it crossed (en passant on the king). Natural chess as
-   described has no such rule, and none is implemented. It would need a new field in `Position`
+   the king "in passing" on the square it crossed (en passant on the king). The essay weighs this
+   argument (castling seen "in the en passant manner") and declines it. Natural chess has no such
+   rule, and none is implemented. It would need a new field in `Position`
    (the crossed square), i.e. a change to the core, unlike every other variant here.
 3. **A player with no move at all** (not even one exposing the king). Default: draw, like a stalemate.
-   That is how Hamkins treats it in *Checkmate is not the same as a forced capture…*.
-   Alternatives: `natural-nomove-loses`, and `natural-pass` (the null move suggested by a commenter;
-   it restores equivalence for this case).
+   That is how Hamkins treats it, in the essay (his first position) and in *Checkmate is not the
+   same as a forced capture…*. Alternatives, both discussed in the essay: `natural-normal` (no
+   legal move loses), and `natural-lose-turn` (the player passes, as suggested by a commenter;
+   it restores equivalence for this case). GRID_VARIANTS.md compares all these conventions.
 4. **Stalemate.** Taken literally, natural chess has no stalemate rule: a stalemated player must
    move and expose the king, then loses it. "Stalemate = draw" cannot be stated in natural chess
    without reintroducing *check*. For comparison, `standard-stalemate-wins` changes standard chess instead.
@@ -626,11 +701,14 @@ transcribing the Laws themselves.
     Under (c), a standard mate in *n* moves corresponds to a natural win in *2n+1* plies. All
     comparisons here use (c), computed either by bounded search (standard horizon *h*, natural *h*+2)
     or exactly (tablebases).
-16. **Reachability.** Real Lichess positions are reachable by construction. Hunted and random positions satisfy the
-    validity rules (one king each, side not to move not in check, consistent castling rights, no pawn on
-    the back ranks), plus a material-plausibility filter for the hunted examples. That is necessary, not
-    sufficient, for reachability (FIDE 3.10.3). This is why the headline examples come from real games
-    where possible.
+16. **Reachability.** Real Lichess positions are reachable by construction. The constructed
+    positions of the theorems, and Hamkins' diagrams, are reachable too: each one is reached by a
+    proof game from the initial position (`data/proofgames/`, checked by python-chess and replayed in
+    Lean, `Chess/ProofGames.lean`). The 75-move position is reached with its exact move counters
+    (148 half-moves, move 120). The other hunted and random positions only satisfy the validity rules
+    (one king each, side not to move not in check, consistent castling rights, no pawn on the back
+    ranks), plus a material-plausibility filter for the hunted examples. That is necessary, not
+    sufficient, for reachability (FIDE 3.10.3).
 
 ---
 

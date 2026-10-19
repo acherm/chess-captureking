@@ -5,28 +5,32 @@
 > J. D. Hamkins, [*Every game of chess ends prematurely*](https://www.infinitelymore.xyz/p/chess-games-end-one-move-early) (Infinitely More, October 2026)
 
 After all, are check and checkmate really needed as part of chess rules? In Hamkins' words, "games of chess thus seem always to end one move early—the
-curtains close just before the climax." His *natural chess* drop the rules about
-check and checkmate, and play on until a king is actually captured. Surely that changes nothing?
-Hamkins says that natural chess is "almost equivalent to standard chess", but "not quite fully
-equivalent".
+curtains close just before the climax." His *natural chess* drops the rules about
+check and checkmate, and play goes on until a king is actually captured. Surely that changes nothing?
+Hamkins shows that natural chess is "almost equivalent to standard chess", but "not quite fully
+equivalent", with one position for each of three kinds of divergence.
 
-This project formalizes both games in Lean 4 and checks the
-claim, by proofs, by perft, on Lichess positions, on random positions, by targeted search, and
-with complete endgame tablebases.
+This project formalizes both games in Lean 4, machine-checks Hamkins' positions, and measures and
+explains the difference: by proofs, by perft, on Lichess positions, on random positions, by targeted
+and exhaustive search, and with complete endgame tablebases. It then takes up the question that
+closes the essay: which of Hamkins' variations (normal play, passing, lose-your-turn) are
+equivalent? See [GRID_VARIANTS.md](GRID_VARIANTS.md).
 
 ## TL;DR (beware of teasing!)
 
-**Natural chess is not equivalent to standard chess**, and all three kinds of divergence
-announced by Hamkins occur:
+**Natural chess is not equivalent to standard chess.** Hamkins shows it with three positions, one
+for each kind of divergence. They are machine-checked here (`Chess/Theorems.lean`), next to
+positions from real games and a smaller example of the third kind:
 
-| kind | example position | standard chess | natural chess |
-|---|---|---|---|
-| (1) a standard win where the king cannot be captured: castling out of check | Lichess [RSJfq4Su](https://lichess.org/RSJfq4Su) after 9... Qxe2#: `r1b1kb1r/ppp1pppp/5n2/4N3/3n1B2/N7/PPP1qPPP/R3K2R w KQkq - 0 10` | 0-1, checkmate | 10. O-O, the king is safe and the game goes on |
-| (1') a standard win where the mated side cannot move at all | `KN1q4/PPpPk3/PnP5/8/8/8/8/8 w - - 0 1` | 0-1, checkmate | draw: no move, so the king can never be captured |
-| (2) a standard draw that is a natural win: stalemate | Lichess [NZ2sKoBF](https://lichess.org/NZ2sKoBF) before move 72: `7k/7P/6K1/8/8/8/8/8 w - - 1 72` | draw (72. Kh6 is stalemate) | 1-0: 72. Kh6!, and every black move exposes the king |
-| (2') a standard draw that is a natural win: dead position | Lichess [A8iBWO7I](https://lichess.org/A8iBWO7I), final position: `8/8/8/8/8/8/8/4k1bK b - - 0 108` | draw, game over (insufficient material) | 0-1: 108... Kf2 and White must expose his king |
-| (3) **opposite outcomes** | `8/8/8/8/1Q6/3k4/4qP2/R3K3 w Q - 0 1` | **0-1**, White is checkmated | **1-0**: 1. O-O-O+ (out of and through check) wins within 5 plies |
-| (new) a timing effect of the 75-move rule | `k7/8/1K6/8/8/8/8/2R5 w - - 148 120` | 1-0: 1. Rc8# (mate takes precedence) | draw: 1. Rc8 Kb7 reaches 150 half-moves before the king can be taken |
+| kind | Hamkins' position | more examples here | standard chess | natural chess |
+|---|---|---|---|---|
+| (1) a standard win where the king is never captured | `KRBkn3/PP1P4/8/8/8/8/8/8 b - - 0 1`: 1... Nc7# leaves White with no move at all | **508 real checkmates** escaped by castling out of check, e.g. Lichess [RSJfq4Su](https://lichess.org/RSJfq4Su) after 9... Qxe2#: `r1b1kb1r/ppp1pppp/5n2/4N3/3n1B2/N7/PPP1qPPP/R3K2R w KQkq - 0 10` | 0-1, checkmate | draw (no move), or 10. O-O and the game goes on |
+| (2) a standard draw that is a natural win | `1r6/K6k/8/1q6/8/8/8/8 w - - 0 1` (David Madore): stalemate | **all 1,956 real stalemates**, e.g. Lichess [NZ2sKoBF](https://lichess.org/NZ2sKoBF) before move 72: `7k/7P/6K1/8/8/8/8/8 w - - 1 72`; and dead positions, e.g. Lichess [A8iBWO7I](https://lichess.org/A8iBWO7I): `8/8/8/8/8/8/8/4k1bK b - - 0 108` | draw (72. Kh6 is stalemate; K+B v K is dead) | win (72. Kh6!; 108... Kf2!): every reply exposes the king |
+| (3) **opposite outcomes** | `5kr1/4p1p1/6B1/1b6/8/2p5/3q3P/1R2K2R w K - 0 1` (12 pieces): 1... Qd2#, then 2. O-O | a **5-piece miniature**, found by exhaustive search: `8/8/8/8/8/8/3Q4/R3Kqk1 w Q - 0 1`, where 1. O-O-O pins the queen and wins within 7 plies. No 4-piece position works (within 13 plies) | **0-1**, White is checkmated | **1-0**, by castling out of (and through) check |
+| (new) a timing effect of the 75-move rule | – | `k7/8/1K6/8/8/8/8/2R5 w - - 148 120` | 1-0: 1. Rc8# (mate takes precedence) | draw: 1. Rc8 Kb7 reaches 150 half-moves before the king can be taken |
+
+Every position in this table is a legal chess position: each one is reached by a proof game from
+the initial position (`data/proofgames/`), replayed by the Lean engine (`Chess/ProofGames.lean`).
 
 How often, and how much:
 * **Perft** agrees from the initial position up to depth 3 and differs at depth 4: 197,742 natural
@@ -39,10 +43,11 @@ How often, and how much:
   - **all 1,956 stalemates** are natural wins for the stalemating side.
 * **Exact endgame tablebases**: no standard win changes, but **33% of the KPK draws** are decisive
   in natural chess, and so are 2.2% of KBK and 0.8% of KNK positions (dead positions in standard chess).
-* **What exactly differs.** Every difference in who wins comes from one of three rules:
+* **What exactly differs.** Hamkins' positions point at castling and stalemate. Every difference
+  in who wins observed here comes from one of three rules:
   - castling across attacked squares (FIDE 3.8.2.2);
-  - stalemate (5.2.1);
-  - the dead position rule (5.2.2), plus the timing of automatic draws.
+  - stalemate (5.2.1), including the case of a player who cannot move at all;
+  - the dead position rule (5.2.2), plus the timing of automatic draws (not in the essay).
 
   Two "bridge" rule sets make this exact, with every win taking exactly one move longer in natural chess:
   - `standard-naturalized` = standard chess changed on those points; it has the values of natural chess;
@@ -50,15 +55,24 @@ How often, and how much:
     values of standard chess.
 
   Both bridges hold on 1.9M endgame positions and 16,783 game positions, with 0 exceptions.
+* **Hamkins' grid of variations** (the essay's closing question, [GRID_VARIANTS.md](GRID_VARIANTS.md)):
+  the eight games (standard or natural; ordinary, normal play, passing, lose-your-turn) are
+  pairwise inequivalent, and three of Hamkins' diagrams suffice to show it. Modulo castling,
+  exactly two pairs coincide: normal-play standard and natural chess, and standard and natural
+  chess with passing. Passing erases 98% of the K+R v K wins but none of the K+Q v K wins.
 * **Machine-checked**:
   - proved for every position: every standard legal move is a natural legal move;
-  - checked by evaluation (`native_decide`): the key fact about every position in the table above
-    (theorems in `Chess/Theorems.lean`). That the KPK position is an exact standard draw comes from
-    the tablebase;
+  - checked by evaluation (`native_decide`): the key fact about every position in the table above,
+    Hamkins' diagrams included (theorems in `Chess/Theorems.lean`), and their values in the eight
+    games of the grid (`Chess/GridTheorems.lean`). That the KPK position is an exact standard draw
+    comes from the tablebase;
+  - legal positions: every constructed position and every diagram of the essay is reached by a
+    proof game, replayed in Lean (`Chess/ProofGames.lean`) and by python-chess;
   - tested: perft matches the reference tables (initial position to depth 6), and there are 0
     mismatches with python-chess on 160,257 Lichess positions and 20,000 games.
 
 **Full results and the list of interpretation choices: see [REPORT.md](REPORT.md).**
+**Hamkins' grid of variations (normal play, passing, lose-your-turn), compared pairwise: see [GRID_VARIANTS.md](GRID_VARIANTS.md).**
 **How the variants are implemented (variability mechanism): see [VARIABILITY.md](VARIABILITY.md).**
 **Every rule traced back to the FIDE Laws of Chess, and natural chess as an edit of the Laws: see [RULES.md](RULES.md).**
 
@@ -103,15 +117,17 @@ generic in the rule set.
 | `Chess/Rules/Movement.lean` | FIDE movement rules (shared by both games) |
 | `Chess/Rules/Standard.lean` | FIDE legality, ending, claim and validity rules |
 | `Chess/Rules/Natural.lean` | natural chess, as a delta |
-| `Chess/Rules/Variants.lean` | alternative interpretations (pass, no-move-loses, keep dead position, keep FIDE castling, …) and the two "bridges": `standard-naturalized` (standard chess with the values of natural chess) and `natural-standardized` (natural chess with the values of standard chess) |
+| `Chess/Rules/Variants.lean` | alternative interpretations (keep dead position, keep FIDE castling, …), the two "bridges" `standard-naturalized` (standard chess with the values of natural chess) and `natural-standardized` (natural chess with the values of standard chess), and Hamkins' grid: normal play, passing, lose-your-turn, for both games, with one bridge per convention |
 | `Chess/Notation/San.lean`, `Chess/Game.lean` | SAN, games (sequences of moves, legality with explanations, status with history) |
 | `Chess/Perft.lean` | perft, divide, perft counters (captures, e.p., castles, promotions, checks, …) |
 | `Chess/Solver.lean` | bounded game-theoretic search (`canWin`, `mustLose`, `solve`) |
-| `Chess/Analysis/` | comparison of rule sets, divergence explorer, random positions, hunts, tablebases |
-| `Chess/Theorems.lean` | theorems: standard legal moves ⊆ natural legal moves; concrete non-equivalences |
+| `Chess/Analysis/` | comparison of rule sets, divergence explorer, random positions, hunts (and the exhaustive search for small opposite outcomes), tablebases, the grid comparison |
+| `Chess/Theorems.lean` | theorems: standard legal moves ⊆ natural legal moves; concrete non-equivalences, Hamkins' positions |
+| `Chess/GridTheorems.lean` | the values of Hamkins' positions in the eight games of the grid |
+| `Chess/ProofGames.lean`, `data/proofgames/` | proof games: the constructed positions are legal positions |
 | `Main.lean` | command-line interface |
 | `Tests.lean` | test suite |
-| `scripts/` | Lichess extraction, cross-validation against python-chess, summaries |
+| `scripts/` | Lichess extraction, cross-validation against python-chess, proof-game check, summaries |
 
 ## Build and run
 
@@ -143,6 +159,9 @@ $B divergences standard natural 5 10 5    # where the two games start to differ
 $B solve natural 5 "<FEN>"       # bounded search
 $B hunt opposite5 sparse 6 32000000 3 11  # search for "opposite outcome" positions
 $B endgame P standard natural 5  # KPK tablebases under both rule sets, compared
+$B miniature 2                   # every checkmate of the castling side with at most 2 more pieces that castling escapes
+$B grid-endgame R                # KRK tablebases under the 8 games of Hamkins' grid, compared pairwise
+$B exact standard-passing "8/8/8/8/2r5/4k3/8/3K4 w - - 0 1"   # exact value: a draw (Hamkins)
 ```
 
 Data: `scripts/extract_lichess.py` extracts positions from a Lichess dump. Here: the first 300k
@@ -154,11 +173,20 @@ table of the variants. Results are in `results/`.
 
 ## How this was built: an AI agent in the loop
 
-This project was produced in one session (18 October 2026) by an AI coding agent, Claude Code
-running Claude Opus 5.5, working on a 16-core Mac. The agent had a shell, file editing and web
-access. A human (acherm) wrote the specification and steered the work with follow-up questions.
-The agent planned, wrote all the code and documents, ran all the experiments, and reported. The
-prompts are reproduced verbatim below.
+This project was produced in two sessions (18 and 19 October 2026) by an AI coding agent, Claude
+Code running Claude Opus 5.5, working on a 16-core Mac. The agent had a shell, file editing and
+web access. A human (acherm) wrote the specification and steered the work with follow-up
+questions. The agent planned, wrote all the code and documents, ran all the experiments, and
+reported. The prompts are reproduced verbatim below.
+
+The first session built everything from the free preview of Hamkins' essay. In the second, the
+human supplied the full essay. The agent then:
+* compared the project with the essay (what overlaps, what is new);
+* credited Hamkins' positions and arguments in the documents;
+* machine-checked his diagrams;
+* added proof games for every constructed position (built by a sub-agent with python-chess);
+* ran an exhaustive search for a smaller opposite-outcome position;
+* answered the essay's closing question on the grid of variants (GRID_VARIANTS.md).
 
 **Division of labour**
 * *Human*: the problem and its methodology (three steps), chess expertise, and the questions that
@@ -171,7 +199,7 @@ prompts are reproduced verbatim below.
   - designed the rule framework;
   - implemented the engines, the tools and the Lean proofs;
   - fetched and processed the Lichess data;
-  - ran the experiments and wrote REPORT.md and VARIABILITY.md.
+  - ran the experiments and wrote REPORT.md, VARIABILITY.md, RULES.md and GRID_VARIANTS.md.
 
 **How the agent's work was checked.** The agent was not trusted on its own word; every claim
 rests on an independent check:
@@ -181,7 +209,8 @@ rests on an independent check:
 * an independent Python implementation of natural chess's moves, for natural perft;
 * cross-checks between variants that must agree (e.g. two different deltas giving the same perft);
 * Lean proofs for the general facts, and `native_decide` for the concrete positions;
-* a test suite (65 tests).
+* proof games checked twice, by python-chess and by the Lean engine;
+* a test suite (77 tests).
 
 **Mistakes made by the agent and caught by these checks**, kept here because they show what such
 a workflow needs:
@@ -194,14 +223,26 @@ a workflow needs:
 * the first "standardized natural chess" turned some standard wins into draws (found by the
   tablebase comparison). This was not only a bug: it revealed a genuine rule interaction;
 * a performance optimization silently did not apply until restructured;
-* a few statements in the report draft were stronger than the evidence and were weakened.
+* a few statements in the report draft were stronger than the evidence and were weakened;
+* the first documents were written from the preview of the essay only. They presented Hamkins'
+  three kinds as "announced", while the essay shows a position of each kind. Corrected once the
+  full essay was read (second session);
+* the null move (a pass) was encoded as a move from a1 to a1, and so "captured" whatever stood on
+  a1: a king there would have made passing illegal (found while adding passing; fixed in the
+  core, with a test);
+* the exact solver ran out of memory (35 GB) on natural chess, which explores every move that
+  hands over the king. Fixed by treating a capturable king as a win in 1 ply, which is exact;
+* the bounded search ordered the moves of the attacker but not the replies of the defender, which
+  made natural chess searches up to 200 times slower. Fixed; no result changes, since the order
+  of a conjunction does not matter.
 
 **What remains to trust**:
 * `native_decide` relies on the Lean compiler;
-* the equivalences of the two bridges are tested exhaustively on endgames and extensively on
+* the equivalences of the bridges are tested exhaustively on endgames and extensively on
   positions, but not proved;
 * bounded searches are bounded;
-* hunted positions are plausible, but not proved to be reachable from the initial position.
+* the positions used in theorems are legal (proof games); the other hunted and random positions are
+  plausible, but not shown to be reachable from the initial position.
 
 <details>
 <summary>The prompts (verbatim)</summary>
@@ -255,5 +296,26 @@ a workflow needs:
 > the README.md is excellent but missing a tldr; in terms of key results (the three kinds of situations that differ, even some positions identified, etc.)
 >
 > I also think it's nice to include the original prompt I give, and the methodology of leveraging an AI agent
+
+**Second session (19 October 2026)**
+
+> I want to contact J. Hamkins to show early work with Lean 4 revisiting what he has done https://www.infinitelymore.xyz/p/chess-games-end-one-move-early
+>
+> What's new? what's overlapping? what's remained to be done?
+
+> article is available here: /Users/mathieuacher/SANDBOX/chess-captureking/article/Every\ game\ of\ chess\ ends\ prematurely.pdf
+
+The agent answered with a comparison and a list of things to do "before you email", which the
+next prompt refers to: rewrite the documents against the full essay; machine-check the essay's
+positions; settle the smallest opposite outcome and give proof games; keep the (paywalled)
+essay out of the repository.
+
+> I fully agree with "Before you email"
+> please implement the 4 points...
+>
+> Question 4, the full grid of variants. Add passing at any time and lose-your-turn standard chess. Then publish a pairwise equivalence matrix with a witness position for each difference. This would also verify the article's claim that K+R v K is a draw when passing is allowed (8/8/8/8/2r5/4k3/8/3K4 w), and extend it to K+Q v K and K+P v K.
+>
+> it's really tempting, but it seems another article...
+> Let's investigate this, and write experimental design and conclusion in a specific Markdown GRID_VARIANTS.md
 
 </details>

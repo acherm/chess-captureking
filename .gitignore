@@ -2,3 +2,5 @@
 data/lichess-games/
 .DS_Store
 __pycache__/
+# Hamkins' essay (paywalled; for local reading only, never published)
+article/

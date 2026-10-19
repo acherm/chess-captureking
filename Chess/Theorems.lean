@@ -148,6 +148,17 @@ theorem opposite_outcome :
     canWin Natural.rules oppositeOutcome 5 = true := by
   native_decide
 
+/-- **The smallest opposite outcome** (5 pieces; no 4-piece position wins within 13 plies,
+REPORT §3.4): White is checkmated by Qf1, protected by the king on g1. In natural chess
+1. O-O-O pins the black queen to its king along the first rank, and White wins within 7 plies
+(e.g. 1... Qxd1+ 2. Kxd1, and the lone king is caught in a stalemate trap). -/
+def oppositeOutcome5 : Position := Position.ofFen! "8/8/8/8/8/8/3Q4/R3Kqk1 w Q - 0 1"
+
+theorem opposite_outcome_5 :
+    Standard.rules.status oppositeOutcome5 = .over ⟨.blackWins, "checkmate"⟩ ∧
+    canWin Natural.rules oppositeOutcome5 7 = true := by
+  native_decide
+
 /-- The 75-move rule (FIDE 9.6.2) gives precedence to a checkmate delivered on the last move, but
 natural chess needs two more plies to capture the king. Here (148 half-moves without capture or
 pawn move) 1. Rc8 mates in standard chess, while in natural chess 1. Rc8 Kb7 reaches 150
@@ -161,15 +172,72 @@ theorem seventy_five_moves :
     canWin Natural.rules (lateMate 140) 3 = true := by
   native_decide
 
+/-! ## The positions of Hamkins' essay
+
+The diagrams of *Every game of chess ends prematurely* (transcribed as FEN), with what the essay
+says about them. -/
+
+/-- Hamkins' first distinguishing position (kind 1), Black to move: 1... Nc7 is checkmate in
+standard chess, but leaves White with no move at all, so in natural chess the game is drawn
+and the king is never captured. The essay argues that no other black move wins either; the
+search confirms that Black cannot force a capture within 9 plies (a bounded check, not a proof
+of the draw). -/
+def hamkinsNoMoveMate : Position := Position.ofFen! "KRBkn3/PP1P4/8/8/8/8/8/8 b - - 0 1"
+
+theorem hamkins_no_move_mate :
+    canWin Standard.rules hamkinsNoMoveMate 1 = true ∧
+    Standard.rules.status (hamkinsNoMoveMate.play (uci! "e8c7")) = .over ⟨.blackWins, "checkmate"⟩ ∧
+    Natural.rules.status (hamkinsNoMoveMate.play (uci! "e8c7")) = .over ⟨.draw, "noLegalMove"⟩ ∧
+    canWin Natural.rules hamkinsNoMoveMate 9 = false := by
+  native_decide
+
+/-- Hamkins' second position (kind 2, suggested by David Madore), White to move: stalemate in
+standard chess, but in natural chess every white move exposes the king. -/
+def hamkinsMadore : Position := Position.ofFen! "1r6/K6k/8/1q6/8/8/8/8 w - - 0 1"
+
+theorem hamkins_madore_stalemate :
+    Standard.rules.status hamkinsMadore = .over ⟨.draw, "stalemate"⟩ ∧
+    mustLose Natural.rules hamkinsMadore 2 = true := by
+  native_decide
+
+/-- Hamkins' third position (kind 3): Black has just played 1... Qd2#. In natural chess White
+castles out of and through check, 2. O-O, and wins. -/
+def hamkinsCastling : Position := Position.ofFen! "5kr1/4p1p1/6B1/1b6/8/2p5/3q3P/1R2K2R w K - 0 1"
+
+theorem hamkins_castling :
+    Standard.rules.status hamkinsCastling = .over ⟨.blackWins, "checkmate"⟩ ∧
+    canWin Natural.rules hamkinsCastling 7 = true := by
+  native_decide
+
+/-- Hamkins' checkmate with pinned pieces: after 1. Bf3+ Rb7# both black attackers are pinned
+to their own king, yet this is checkmate. No divergence: natural chess is won too (one move
+later). -/
+def hamkinsPinned : Position := Position.ofFen! "k6q/4K3/4P3/8/1r6/b4B2/8/Q7 b - - 0 1"
+
+theorem hamkins_pinned :
+    canWin Standard.rules hamkinsPinned 1 = true ∧ canWin Natural.rules hamkinsPinned 3 = true := by
+  native_decide
+
+/-- Hamkins' remark on the meaning of checkmate in natural chess: 1... Qc8 attacks the white
+king beyond any defence, but it is illegal in standard chess (the queen is pinned) and in
+natural chess it is not a checkmate either: White captures the black king first. -/
+def hamkinsQc8 : Position := Position.ofFen! "K7/R7/q7/8/8/k7/8/8 b - - 0 1"
+
+theorem hamkins_qc8 :
+    uci! "a6c8" ∉ Standard.rules.legalMoves hamkinsQc8 ∧
+    uci! "a6c8" ∈ Natural.rules.legalMoves hamkinsQc8 ∧
+    canWin Natural.rules (hamkinsQc8.play (uci! "a6c8")) 1 = true := by
+  native_decide
+
 /-- A checkmate in standard chess where the checkmated player has no move at all, not even one
 exposing the king: in natural chess the king can never be captured and the game is drawn —
-unless the rules let a player without moves pass (`Variants.naturalPass`). -/
+unless the rules let a player without moves pass (`Variants.naturalLoseTurn`). -/
 def noMoveMate : Position := Position.ofFen! "KN1q4/PPpPk3/PnP5/8/8/8/8/8 w - - 0 1"
 
 theorem no_move_checkmate :
     Standard.rules.status noMoveMate = .over ⟨.blackWins, "checkmate"⟩ ∧
     Natural.rules.status noMoveMate = .over ⟨.draw, "noLegalMove"⟩ ∧
-    mustLose Variants.naturalPass noMoveMate 2 = true := by
+    mustLose Variants.naturalLoseTurn noMoveMate 2 = true := by
   native_decide
 
 end Chess

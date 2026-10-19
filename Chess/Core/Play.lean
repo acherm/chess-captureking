@@ -44,9 +44,11 @@ def isEnPassant (pos : Position) (m : Move) : Bool :=
   | some ⟨_, .pawn⟩ => m.src.file != m.dst.file && pos.board.isEmpty m.dst
   | _ => false
 
-/-- The square of the piece captured by `m`, if `m` captures something. -/
+/-- The square of the piece captured by `m`, if `m` captures something. (A pass captures
+nothing, whatever stands on the square used to encode it.) -/
 def capturedSquare? (pos : Position) (m : Move) : Option Square :=
-  if pos.isEnPassant m then some (Square.ofFileRank m.dst.file m.src.rank)
+  if m.isNull then none
+  else if pos.isEnPassant m then some (Square.ofFileRank m.dst.file m.src.rank)
   else if pos.board.isEmpty m.dst then none
   else some m.dst
 

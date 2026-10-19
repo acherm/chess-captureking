@@ -30,8 +30,8 @@ precise:
   leave room for interpretation. When are two positions "the same"? Is the right to castle lost
   when a rook is captured on its home square?
 * **§3** writes natural chess as nine articles of the Laws, red-lined.
-* **§4** traces the variant rules to their origins: a blog comment, thirteenth-century France,
-  the rules of draughts, Lasker and Réti.
+* **§4** traces the variant rules to their origins: Hamkins' essay and a comment on his blog,
+  thirteenth-century France, the rules of draughts and of Go, Lasker and Réti.
 * **§0, §1, §5 and §6** cover how the Laws map onto kinds of rules, what is fixed in the core,
   the choices made in transcribing the Laws, and what is not modelled.
 
@@ -44,7 +44,8 @@ prints them all. [VARIABILITY.md](VARIABILITY.md) explains how rules are combine
 | tag | source |
 |---|---|
 | FIDE | *FIDE Laws of Chess*, effective 1 January 2023 (FIDE Handbook E.01), <https://handbook.fide.com/chapter/E012023>. All article numbers refer to it. |
-| H26 | J. D. Hamkins, [*Every game of chess ends prematurely*](https://www.infinitelymore.xyz/p/chess-games-end-one-move-early), Infinitely More, 15 October 2026. Only the free part (before the paywall) was read. |
+| H26 | J. D. Hamkins, [*Every game of chess ends prematurely*](https://www.infinitelymore.xyz/p/chess-games-end-one-move-early), Infinitely More, 15 October 2026 (the full essay, including its diagrams and the sections on castling, stalemate, normal play and passing). |
+| Dav | H. A. Davidson, *A Short History of Chess*, Greenberg, 1949, as quoted in H26 and in the comments on H22. |
 | H22 | J. D. Hamkins, [*Checkmate is not the same as a forced capture of the enemy king in simplified chess*](https://jdh.hamkins.org/checkmate-is-not-the-same-as-a-forced-capture-of-the-enemy-king-in-simplified-chess/), blog post, 2 July 2022, and its comments. |
 | BHS | D. Brumleve, J. D. Hamkins, P. Schlicht, [*The mate-in-n problem of infinite chess is decidable*](https://arxiv.org/abs/1201.5597), 2012. |
 | PGN | S. J. Edwards, *Portable Game Notation Specification and Implementation Guide*, 1994 ([copy](https://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm)): FEN (§16.1), SAN (§8.2.3). |
@@ -236,9 +237,10 @@ captures than pieces are missing.
 ## 3. Natural chess
 
 The definition (H26): "In what I call natural chess, we abandon the rules about check and checkmate,
-adopting instead the goal of capturing the opposing king." Hamkins' earlier *simplified chess*
-(H22) is the same game: "no rule against leaving your king in check or even moving your king into
-check", and "the winning goal of simplified chess was simply to capture the enemy king".
+adopting instead the goal of capturing the opposing king." H26 spells it out: "there is no
+prohibition about moving into check, through check, or leaving your king in check", and "you win
+the game by capturing the opposing king, just as you would capture any other piece". Hamkins'
+earlier *simplified chess* (H22) is the same game under another name.
 
 Everything else is interpretation (REPORT §4, items 1–9). `Natural.rules`
 (`Chess/Rules/Natural.lean`) is `Standard.rules` with the following delta.
@@ -246,12 +248,12 @@ Everything else is interpretation (REPORT §4, items 1–9). `Natural.rules`
 | delta | rule | source | what it does / why |
 |---|---|---|---|
 | − legality | `noKingCapture`, `noSelfCheck` | H26, H22 | These are 1.4.1 and 3.9.2, the rules about check. |
-| − legality | `castlingNotOutOfCheck`, `castlingNotThroughCheck` | H26 | The attacked-squares condition of 3.8.2.2 is a rule about check (REPORT §4, item 1). The geometric condition stays. |
+| − legality | `castlingNotOutOfCheck`, `castlingNotThroughCheck` | H26, section "Castling in natural chess": "I am inclined to take natural chess as allowing castling out of, into, and through check" | The attacked-squares condition of 3.8.2.2 is a rule about check (REPORT §4, item 1). The geometric condition stays. H26 weighs, and declines, the alternative of forbidding castling *through* check by analogy with en passant. |
 | + legality | `noMoveAfterKingCapture` | 5.1.1, "this immediately ends the game" | If a king is missing, every move is forbidden. Needed because perft counts legal moves and ignores endings. |
 | − ending | `checkmate` | H26 | "abandon the rules about [...] checkmate" |
 | + ending, first | `kingCaptured` | H26: "the goal of capturing the opposing king" | The side whose king is still on the board wins. Both kings missing (unreachable) is a draw. |
 | − ending | `stalemate` | 5.2.1 is stated with check ("and his/her king is not in check") | Taken literally, there is no stalemate: the stalemated player must expose the king (REPORT §4, item 4). |
-| + ending, second | `noLegalMove` | H22: "in simplified chess, this position is a stalemate, rather than a Black win" | A player with no move at all, not even one exposing the king, draws (REPORT §4, item 3). |
+| + ending, second | `noLegalMove` | H26 (and H22): after 1... Nc7, "White has no moves at all [...] Therefore, in natural chess, this position is a stalemate, rather than a Black win" | A player with no move at all, not even one exposing the king, draws (REPORT §4, item 3). |
 | − ending | `deadPosition` | 5.2.2 is stated with checkmate ("neither player can checkmate") | Its natural analogue, "no king capture is possible", almost never holds (REPORT §4, item 5). |
 | kept | `seventyFiveMoves`, `fivefoldRepetition`, `threefoldRepetition`, `fiftyMoves` | 9.2, 9.3, 9.6 | Same text, but not the same effect (below). |
 | − validity | `oneKingEach`, `opponentNotInCheck` | | After a blunder, the player who has just moved may be in check, or the king may be gone. |
@@ -315,16 +317,17 @@ at once (REPORT §4, item 8).
 
 ## 4. The variant rules and where they come from
 
-Rules used only by variants (`Chess/Rules/Variants.lean`). Three come from the history of chess or
-from proposals by others. The others were built in this project to isolate or bridge the
-differences (REPORT §3.6).
+Rules used only by variants (`Chess/Rules/Variants.lean`). Four come from the history of chess or
+from Hamkins' essay. The others were built in this project to isolate or bridge the
+differences (REPORT §3.6, GRID_VARIANTS.md).
 
 **From the literature**
 
 | rule | used by | says | origin |
 |---|---|---|---|
-| `passIfNoMove` (fallback) | `natural-pass` | a player with no legal move passes (null move) | Proposed by a commenter on H22 (Umberto Cavasinni): "it is possible for a player not to move any piece and to skip the turn when there are no possible moves". Hamkins replied that it "does release the tension in my example and restores the claim". The commenter also quotes H. A. Davidson, *A Short History of Chess* (1949): in twelfth- and thirteenth-century France, "stalemate merely caused the stalled player to lose his move". |
-| `noLegalMoveLoses` | `natural-nomove-loses` | a player with no legal move loses | The rule of draughts, where a player who cannot move loses; H22 mentions it. |
+| `passIfNoMove` (fallback) | `natural-lose-turn`, `standard-lose-turn` | a player with no legal move passes (null move) | H26 calls it *lose-your-turn chess*. Davidson: in twelfth- and thirteenth-century France, "stalemate merely caused the stalled player to lose his move". First proposed for natural chess by a commenter on H22 (Umberto Cavasinni); Hamkins replied that it "does release the tension in my example and restores the claim". |
+| `passAnyTime` (movement) | `standard-passing`, `natural-passing` | a player may pass at any time | H26, section "Chess with passing": "Pass plays are a standard convention in Go and many other games". A pass is subject to the legality rules, so a player in check cannot pass in standard chess. |
+| `noLegalMoveLoses` | `natural-normal`, `standard-normal` | a player with no legal move loses | The normal-play convention of combinatorial game theory (H26, section "Normal chess": "to lose means to have no legal move"), as in draughts and Nim. |
 | `stalemateWins` | `standard-stalemate-wins` | a stalemate is won by the stalemating player | Historical: "a win for the stalemating player in 10th century Arabia" (Wiki). Modern proposals stop short of a full win: Lasker and Réti proposed ¾ point for the stalemating side, and Larry Kaufman tested ¾–¼ (Wiki). H22 notes that this scoring would not affect his argument. |
 
 **Built in this project** (each restates a FIDE rule for a game that ends by capturing the king)
@@ -332,6 +335,7 @@ differences (REPORT §3.6).
 | rule | used by | says | restates |
 |---|---|---|---|
 | `noLegalMoveLosesUnlessBlocked` | `standard-naturalized` | no legal move: loss, for checkmate and stalemate alike, unless no piece can move at all even into check (draw) | what natural chess makes of 1.4 and 5.2.1, one move later |
+| `stalemateLosesUnlessBlocked` | `standard-lose-turn-naturalized` | a player not in check whose only legal move is the pass loses if one of his pieces could move (exposing the king); he passes only if none can move at all | what natural lose-your-turn chess makes of 5.2.1 |
 | `stalemateByAttacks` | `natural-standardized` | draw if the king of the player to move is not attacked but every move leaves it attacked | 5.2.1 |
 | `noLegalMoveLikeFide` | `natural-standardized` | no move at all: loss if the king is attacked, draw otherwise | 1.4 and 5.2.1 |
 | `seventyFiveMovesUnlessDecided` | `natural-standardized` | the 75-move draw, except while the player to move can capture the king, or is attacked with every move leaving the king attacked | 9.6.2 with its precedence clause |
@@ -344,11 +348,18 @@ differences (REPORT §3.6).
 | `natural-fide-castling` | natural chess with 3.8.2.2 restored |
 | `natural-nosuicide` | natural chess with 3.9.2 restored |
 | `natural-dead` | natural chess with 5.2.2 restored (as insufficient material, last ending) |
-| `natural-pass` | natural chess where a player with no legal move passes |
-| `natural-nomove-loses` | natural chess where 5.2.1 reads "the game is lost by the player to move" |
+| `natural-lose-turn` | natural chess where a player with no legal move passes |
+| `natural-normal` | natural chess where 5.2.1 reads "the game is lost by the player to move" |
+| `natural-passing` | natural chess where a player may pass at any time |
+| `standard-normal` | 1.4, 5.1.1 and 5.2.1 replaced by "a player with no legal move loses"; 5.2.2 deleted, since insufficient material no longer prevents a win once stalemate wins |
+| `standard-passing` | a player not in check may pass at any time (so 5.2.1 never applies) |
+| `standard-lose-turn` | 5.2.1 reads "the player to move passes" |
 | `standard-free-castling` | the attacked-squares condition of 3.8.2.2 deleted |
 | `standard-stalemate-wins` | 5.2.1 reads "the game is won by the opponent" |
 | `standard-naturalized` | `standard-free-castling`, with 1.4/5.1.1, 5.2.1 and 5.2.2 replaced by `noLegalMoveLosesUnlessBlocked` |
+| `standard-normal-naturalized` | `standard-normal` with the attacked-squares condition of 3.8.2.2 deleted |
+| `standard-passing-naturalized` | `standard-passing` with the attacked-squares condition of 3.8.2.2 and 5.2.2 deleted |
+| `standard-lose-turn-naturalized` | `standard-lose-turn` with the attacked-squares condition of 3.8.2.2 and 5.2.2 deleted, and `stalemateLosesUnlessBlocked` |
 | `natural-standardized` | natural chess with 3.8.2.2 restored, 5.2.1 restated with attacks, checkmate (1.4) restored for a player who cannot move at all, and the 5.2.2, 9.6.1 and 9.6.2 draws giving way to a king capture |
 
 Each bridge has the game values of the game it imitates, every win taking exactly one move (two

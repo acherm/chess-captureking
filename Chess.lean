@@ -17,3 +17,6 @@ import Chess.Theorems
 import Chess.Analysis.Divergence
 import Chess.Analysis.Hunt
 import Chess.Analysis.Tablebase
+import Chess.Analysis.Grid
+import Chess.GridTheorems
+import Chess.ProofGames

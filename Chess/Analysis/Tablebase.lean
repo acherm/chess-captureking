@@ -39,6 +39,11 @@ def Value.sign : Value → Int
   | .loss _ => -1
   | .draw => 0
 
+/-- The distance to the end of the game, in plies (0 for a draw). -/
+def Value.plies : Value → Nat
+  | .win n | .loss n => n
+  | .draw => 0
+
 /-- Forget the move counters, and the en passant target when no en passant capture is possible. -/
 def normalizePosition (rs : RuleSet) (p : Position) : Position :=
   let p := { p with halfmoveClock := 0, fullmoveNumber := 1 }
@@ -65,7 +70,11 @@ private def parMap {α β} [Inhabited β] (f : α → β) (xs : Array α) (chunk
       i := i + chunk
     return tasks.foldl (fun acc t => acc ++ t.get) #[]
 
-def solveEndgame (rs : RuleSet) (start : Array Position) : Tablebase := Id.run do
+/-- With `kingCaptureWins`, a position where the player to move can capture the opponent's king is
+not explored further: it is won in 1 ply (the capture). This is exact in games won by capturing
+the king, and keeps their game graphs from growing with every move that hands the king over. -/
+def solveEndgame (rs : RuleSet) (start : Array Position) (kingCaptureWins : Bool := false) :
+    Tablebase := Id.run do
   -- 1. explore the game graph, layer by layer
   let mut positions : Array Position := #[]
   let mut index : Std.HashMap Position Nat := {}
@@ -78,13 +87,18 @@ def solveEndgame (rs : RuleSet) (start : Array Position) : Tablebase := Id.run d
       frontier := frontier.push p
   -- successors (as indices) and terminal outcomes, in the order of `positions`
   let mut succ : Array (Array Nat) := #[]
-  let mut terminal : Array (Option Outcome) := #[]
+  let mut terminal : Array (Option Value) := #[]
   while !frontier.isEmpty do
     let expanded := parMap (fun p =>
       let sit := rs.situation p
       match rs.outcome? sit with
-      | some o => (some o, #[])
-      | none => (none, (sit.legalMoves.get.map fun m => normalizePosition rs (p.play m)).toArray))
+      | some o =>
+        let v := if o.result == Result.draw then Value.draw
+          else if o.result == Result.winner p.turn then .win 0 else .loss 0
+        (some v, #[])
+      | none =>
+        if kingCaptureWins && p.isInCheck p.turn.opponent then (some (.win 1), #[])
+        else (none, (sit.legalMoves.get.map fun m => normalizePosition rs (p.play m)).toArray))
       frontier
     let mut next := #[]
     for (o, children) in expanded do
@@ -110,11 +124,13 @@ def solveEndgame (rs : RuleSet) (start : Array Position) : Tablebase := Id.run d
   let mut values : Array (Option Value) := Array.replicate n none
   let mut queue : Array Nat := #[]
   for i in List.range n do
-    if let some o := terminal[i]! then
-      let v := if o.result == .draw then Value.draw
-        else if o.result == Result.winner positions[i]!.turn then .win 0 else .loss 0
+    if let some v := terminal[i]! then
       values := values.set! i (some v)
-      if v != .draw then queue := queue.push i
+  -- decisive terminal positions, by increasing distance (0, then the shortcut wins in 1)
+  for d in [0, 1] do
+    for i in List.range n do
+      if let some v := terminal[i]! then
+        if v != Value.draw && v.plies == d then queue := queue.push i
   -- 3. backward propagation, in order of increasing distance
   let mut head := 0
   while head < queue.size do
