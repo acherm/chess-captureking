@@ -1,13 +1,41 @@
 # Standard chess vs natural chess, in Lean 4
 
-J. D. Hamkins ([*Every game of chess ends prematurely*](https://www.infinitelymore.xyz/p/chess-games-end-one-move-early),
-Infinitely More, October 2026) observes that a standard
-game of chess ends "one move early": checkmate is declared one move before the king could be
-captured. *Natural chess* drops the rules about check and checkmate and plays on until a king is
-actually captured. Hamkins claims that natural chess is "almost equivalent to standard chess",
-but "not quite fully equivalent". This project formalizes both games in Lean 4 and checks the
-claim, by proofs, by perft, on Lichess positions, on random positions, by targeted search, and
-with complete endgame tablebases.
+> *Why do we play chess for checkmate instead of playing more naturally to capture the enemy king?*
+>
+> J. D. Hamkins, [*Every game of chess ends prematurely*](https://www.infinitelymore.xyz/p/chess-games-end-one-move-early) (Infinitely More, October 2026)
+
+Checkmate is a promise: whatever you play, your king falls on the next move. Standard chess stops
+at the promise. In Hamkins' words, "games of chess thus seem always to end one move early—the
+curtains close just before the climax." His *natural chess* plays the climax: drop the rules about
+check and checkmate, and play on until a king is actually captured. Surely that changes nothing?
+Hamkins says that natural chess is "almost equivalent to standard chess", but "not quite fully
+equivalent".
+
+Here is a position where the promise breaks. White to move:
+
+```
+. . . . . . . .      8
+. . . . . . . .      7
+. . . . . . . .      6
+. . . . . . . .      5
+. Q . . . . . .      4
+. . . k . . . .      3
+. . . . q P . .      2
+R . . . K . . .      1
+a b c d e f g h
+```
+
+* **Standard chess: 0-1.** The queen on e2, protected by the black king, attacks the white king.
+  The king can neither escape nor take her: White is checkmated.
+* **Natural chess: 1-0.** White castles out of check and across the attacked d1 square: 1. O-O-O+.
+  The king is safe on c1, the rook gives check from d1, and White captures the black king within
+  5 plies.
+
+Same position, opposite results. This repository formalizes both games in Lean 4, with rules as
+first-class values, so that natural chess is a short, readable delta on standard chess. It then
+hunts for the positions where the two games part ways. The tools are proofs, perft, 300,000
+Lichess games, random positions, targeted search and complete endgame tablebases. Hamkins is right
+on both counts, "almost" and "not quite", and the TL;DR below puts numbers on both.
 
 ## TL;DR
 
