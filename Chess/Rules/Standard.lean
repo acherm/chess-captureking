@@ -130,7 +130,7 @@ def fiftyMoves : EndingRule where
 
 def oneKingEach : ValidityRule where
   name := "oneKingEach"
-  doc := "FIDE 2.2: each player has exactly one king."
+  doc := "FIDE 2.2, 1.4.1, 3.7.3.3: each player has exactly one king (one at the start, never captured, never created by promotion)."
   holds pos := [Color.white, .black].all fun c => (pos.board.squaresOf ⟨c, .king⟩).length == 1
 
 def noPawnOnFirstOrLastRank : ValidityRule where

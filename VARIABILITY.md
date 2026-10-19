@@ -112,7 +112,7 @@ The other variants (`Chess/Rules/Variants.lean`), with the base each one is deri
 | `natural-fide-castling` | natural | `+ castlingNotOutOfCheck, castlingNotThroughCheck` | isolate the effect of castling |
 | `natural-nosuicide` | natural | `+ noSelfCheck` | natural chess without suicidal moves |
 | `standard-free-castling` | standard | `− castlingNotOutOfCheck, castlingNotThroughCheck` | isolate the effect of castling |
-| `standard-stalemate-wins` | standard | `stalemate` replaced by `stalemateWins` | Lasker-style stalemate |
+| `standard-stalemate-wins` | standard | `stalemate` replaced by `stalemateWins` | stalemate scored as a win |
 | `standard-naturalized` | standard-free-castling | `− checkmate, stalemate, deadPosition; + noLegalMoveLosesUnlessBlocked` (first) | bridge: standard chess with the values of natural chess |
 | `natural-standardized` | natural | `+ castling conditions; noLegalMove → noLegalMoveLikeFide; + stalemateByAttacks after kingCaptured; + deadPosition (giving way to king capture); 75-move and fivefold rules giving way to king capture` | bridge: natural chess with the values of standard chess |
 

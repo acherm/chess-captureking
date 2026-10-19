@@ -560,6 +560,8 @@ rule-set definitions, valid for every position.
 
 Formalizing forced decisions that the informal descriptions leave open. Each choice is a named rule,
 and the main alternatives are rule sets in `Chess/Rules/Variants.lean`, so their effect can be measured.
+[RULES.md](RULES.md) traces every rule to its source in the FIDE Laws and lists the choices made in
+transcribing the Laws themselves.
 
 ### In the specification of natural chess
 

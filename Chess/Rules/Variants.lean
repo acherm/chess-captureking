@@ -21,13 +21,13 @@ def passIfNoMove : MovementRule where
 
 def noLegalMoveLoses : EndingRule where
   name := "noLegalMoveLoses"
-  doc := "A player who has no legal move loses (as in many king-capture variants)."
+  doc := "A player who has no legal move loses (as in draughts)."
   judge sit :=
     if sit.noLegalMove.get then some (Result.winner sit.position.turn.opponent) else none
 
 def stalemateWins : EndingRule where
   name := "stalemateWins"
-  doc := "A stalemated player loses: the stalemating player wins (proposals by Lasker and others)."
+  doc := "A stalemated player loses: the stalemating player wins (as in some early forms of chess; Lasker and Réti proposed 3/4 of a point)."
   judge sit :=
     let pos := sit.position
     if !pos.isInCheck pos.turn && sit.noLegalMove.get then some (Result.winner pos.turn.opponent)

@@ -1,6 +1,7 @@
 # Standard chess vs natural chess, in Lean 4
 
-J. D. Hamkins (*Every game of chess ends prematurely*, Infinitely More) observes that a standard
+J. D. Hamkins ([*Every game of chess ends prematurely*](https://www.infinitelymore.xyz/p/chess-games-end-one-move-early),
+Infinitely More, October 2026) observes that a standard
 game of chess ends "one move early": checkmate is declared one move before the king could be
 captured. *Natural chess* drops the rules about check and checkmate and plays on until a king is
 actually captured. Hamkins claims that natural chess is "almost equivalent to standard chess",
@@ -54,10 +55,12 @@ How often, and how much:
 
 **Full results and the list of interpretation choices: see [REPORT.md](REPORT.md).**
 **How the variants are implemented (variability mechanism): see [VARIABILITY.md](VARIABILITY.md).**
+**Every rule traced back to the FIDE Laws of Chess, and natural chess as an edit of the Laws: see [RULES.md](RULES.md).**
 
-## Design
+## Design and Variability
 
-Rules are first-class, named, documented values (each one cites its FIDE article). A *rule set*
+Rules are first-class, named, documented values (each one cites its FIDE article; [RULES.md](RULES.md)
+lists them all with their sources). A *rule set*
 is a list of rules of five kinds:
 
 | kind | role | examples |
