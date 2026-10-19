@@ -1,0 +1,77 @@
+Divergences between 'standard' and 'natural' within 2 plies of r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1
+6 positions where the legal moves differ
+  after 0 plies: 0 positions, 0 moves only in 'natural', 0 only in 'standard'; contribution to perft(2) difference: 0
+  after 1 plies: 6 positions, 10 moves only in 'natural', 0 only in 'standard'; contribution to perft(2) difference: 10
+Rules of 'standard' forbidding the extra moves of 'natural':
+  noSelfCheck: 5
+  castlingNotThroughCheck: 4
+  noSelfCheck+castlingNotThroughCheck: 1
+First 4 examples:
+  1. Nxf7 | r3k2r/p1ppqNb1/bn2pnp1/3P4/1p2P3/2N2Q1p/PPPBBPPP/R3K2R b KQkq - 0 1
+    only in 'natural': Kd8 [noSelfCheck], O-O-O [castlingNotThroughCheck]
+  1. Nxg6 | r3k2r/p1ppqpb1/bn2pnN1/3P4/1p2P3/2N2Q1p/PPPBBPPP/R3K2R b KQkq - 0 1
+    only in 'natural': Kf8 [noSelfCheck], O-O [castlingNotThroughCheck]
+  1. Nc6 | r3k2r/p1ppqpb1/bnN1pnp1/3P4/1p2P3/2N2Q1p/PPPBBPPP/R3K2R b KQkq - 1 1
+    only in 'natural': Kd8 [noSelfCheck], O-O-O [castlingNotThroughCheck]
+  1. Nxd7 | r3k2r/p1pNqpb1/bn2pnp1/3P4/1p2P3/2N2Q1p/PPPBBPPP/R3K2R b KQkq - 0 1
+    only in 'natural': Kf8 [noSelfCheck], O-O [castlingNotThroughCheck]
+
+Divergences between 'standard' and 'natural' within 2 plies of 8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1
+15 positions where the legal moves differ
+  after 0 plies: 1 positions, 2 moves only in 'natural', 0 only in 'standard'; contribution to perft(2) difference: 37
+  after 1 plies: 14 positions, 50 moves only in 'natural', 0 only in 'standard'; contribution to perft(2) difference: 50
+Rules of 'standard' forbidding the extra moves of 'natural':
+  noSelfCheck: 52
+First 4 examples:
+  | 8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1
+    only in 'natural': b6 [noSelfCheck], Kb6 [noSelfCheck]
+  1. e3 | 8/2p5/3p4/KP5r/1R3p1k/4P3/6P1/8 b - - 0 1
+    only in 'natural': f3 [noSelfCheck], fxe3 [noSelfCheck], Kh3 [noSelfCheck]
+  1. g3+ | 8/2p5/3p4/KP5r/1R3p1k/6P1/4P3/8 b - - 0 1
+    only in 'natural': f3 [noSelfCheck], d5 [noSelfCheck], c6 [noSelfCheck], c5 [noSelfCheck], fxg3 [noSelfCheck], Rh6 [noSelfCheck], Rh7 [noSelfCheck], Rh8 [noSelfCheck], Rg5 [noSelfCheck], Rf5 [noSelfCheck], Re5 [noSelfCheck], Rd5 [noSelfCheck], Rc5 [noSelfCheck], Rxb5+ [noSelfCheck]
+  1. e4 | 8/2p5/3p4/KP5r/1R2Pp1k/8/6P1/8 b - e3 0 1
+    only in 'natural': fxe3 [noSelfCheck], Kh3 [noSelfCheck]
+
+Divergences between 'standard' and 'natural' within 2 plies of r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1
+7 positions where the legal moves differ
+  after 0 plies: 1 positions, 32 moves only in 'natural', 0 only in 'standard'; contribution to perft(2) difference: 1565
+  after 1 plies: 6 positions, 16 moves only in 'natural', 0 only in 'standard'; contribution to perft(2) difference: 16
+Rules of 'standard' forbidding the extra moves of 'natural':
+  noSelfCheck: 42
+  noSelfCheck+castlingNotThroughCheck: 6
+First 4 examples:
+  | r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1
+    only in 'natural': d3 [noSelfCheck], g3 [noSelfCheck], h3 [noSelfCheck], e5 [noSelfCheck], g4 [noSelfCheck], h4 [noSelfCheck], Ng5 [noSelfCheck], Nh4 [noSelfCheck], Ne1 [noSelfCheck], Ne5 [noSelfCheck], Ng4 [noSelfCheck], Nf5 [noSelfCheck], Nxf7 [noSelfCheck], Ng8 [noSelfCheck], Bb3 [noSelfCheck], Bc2 [noSelfCheck], Bd6 [noSelfCheck], Be7 [noSelfCheck], Bf8 [noSelfCheck], Bxa5 [noSelfCheck], Bxa3 [noSelfCheck], Bc3 [noSelfCheck], Rb1 [noSelfCheck], Rc1 [noSelfCheck], Re1 [noSelfCheck], Qe1 [noSelfCheck], Qc1 [noSelfCheck], Qb1 [noSelfCheck], Qe2 [noSelfCheck], Qc2 [noSelfCheck], Qb3 [noSelfCheck], Kf2 [noSelfCheck]
+  1. c5 | r3k2r/Pppp1ppp/1b3nbN/nPP5/BB2P3/q4N2/Pp1P2PP/R2Q1RK1 b kq - 0 1
+    only in 'natural': O-O [noSelfCheck+castlingNotThroughCheck]
+  1. d4 | r3k2r/Pppp1ppp/1b3nbN/nP6/BBPPP3/q4N2/Pp4PP/R2Q1RK1 b kq d3 0 1
+    only in 'natural': Kf8 [noSelfCheck], Ke7 [noSelfCheck], O-O [noSelfCheck+castlingNotThroughCheck]
+  1. Nd4 | r3k2r/Pppp1ppp/1b3nbN/nP6/BBPNP3/q7/Pp1P2PP/R2Q1RK1 b kq - 1 1
+    only in 'natural': Kf8 [noSelfCheck], Ke7 [noSelfCheck], O-O [noSelfCheck+castlingNotThroughCheck]
+
+Divergences between 'standard' and 'natural' within 2 plies of rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8
+42 positions where the legal moves differ
+  after 0 plies: 0 positions, 0 moves only in 'natural', 0 only in 'standard'; contribution to perft(2) difference: 0
+  after 1 plies: 42 positions, 66 moves only in 'natural', 0 only in 'standard'; contribution to perft(2) difference: 66
+Rules of 'standard' forbidding the extra moves of 'natural':
+  noSelfCheck: 66
+First 4 examples:
+  8. a3 | rnbq1k1r/pp1Pbppp/2p5/8/2B5/P7/1PP1NnPP/RNBQK2R b KQ - 0 8
+    only in 'natural': Ke8 [noSelfCheck]
+  8. b3 | rnbq1k1r/pp1Pbppp/2p5/8/2B5/1P6/P1P1NnPP/RNBQK2R b KQ - 0 8
+    only in 'natural': Ke8 [noSelfCheck]
+  8. c3 | rnbq1k1r/pp1Pbppp/2p5/8/2B5/2P5/PP2NnPP/RNBQK2R b KQ - 0 8
+    only in 'natural': Ke8 [noSelfCheck]
+  8. g3 | rnbq1k1r/pp1Pbppp/2p5/8/2B5/6P1/PPP1Nn1P/RNBQK2R b KQ - 0 8
+    only in 'natural': Ke8 [noSelfCheck]
+
+Divergences between 'standard' and 'natural' within 2 plies of r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10
+1 positions where the legal moves differ
+  after 0 plies: 0 positions, 0 moves only in 'natural', 0 only in 'standard'; contribution to perft(2) difference: 0
+  after 1 plies: 1 positions, 45 moves only in 'natural', 0 only in 'standard'; contribution to perft(2) difference: 45
+Rules of 'standard' forbidding the extra moves of 'natural':
+  noSelfCheck: 45
+First 4 examples:
+  10. Bxf7+ | r4rk1/1pp1qBpp/p1np1n2/2b1p1B1/4P1b1/P1NP1N2/1PP1QPPP/R4RK1 b - - 0 10
+    only in 'natural': a5 [noSelfCheck], d5 [noSelfCheck], b6 [noSelfCheck], g6 [noSelfCheck], h6 [noSelfCheck], b5 [noSelfCheck], h5 [noSelfCheck], Nd8 [noSelfCheck], Nd4 [noSelfCheck], Nb4 [noSelfCheck], Na5 [noSelfCheck], Na7 [noSelfCheck], Nb8 [noSelfCheck], Nh5 [noSelfCheck], Nxe4 [noSelfCheck], Nd5 [noSelfCheck], Nd7 [noSelfCheck], Ne8 [noSelfCheck], Bh5 [noSelfCheck], Bf5 [noSelfCheck], Be6 [noSelfCheck], Bd7 [noSelfCheck], Bc8 [noSelfCheck], Bxf3 [noSelfCheck], Bh3 [noSelfCheck], Bb6 [noSelfCheck], Ba7 [noSelfCheck], Bb4 [noSelfCheck], Bxa3 [noSelfCheck], Bd4 [noSelfCheck], Be3 [noSelfCheck], Bxf2+ [noSelfCheck], Rab8 [noSelfCheck], Rac8 [noSelfCheck], Rad8 [noSelfCheck], Rae8 [noSelfCheck], Ra7 [noSelfCheck], Rfe8 [noSelfCheck], Rfd8 [noSelfCheck], Rfc8 [noSelfCheck], Rfb8 [noSelfCheck], Qe8 [noSelfCheck], Qd7 [noSelfCheck], Qe6 [noSelfCheck], Qd8 [noSelfCheck]
+

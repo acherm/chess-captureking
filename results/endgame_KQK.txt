@@ -1,0 +1,18 @@
+KQK: 368452 standard-valid positions; graph sizes 372064 (standard, 8443 ms), 516224 (natural, 15250 ms)
+rows: standard, columns: natural (value for the player to move)
+	win	draw	loss
+win	144508	0	0
+draw	0	22176	872
+loss	0	0	200896
+distance in plies (natural - standard) when both decisive with the same sign:
+  -10: 1200
+  -8: 3672
+  -6: 10864
+  -4: 25060
+  -2: 59072
+  0: 214360
+  2: 31176
+  draw->loss: 8/8/8/8/8/8/4Q3/K1k5 b - - 0 1  standard draw, natural loss2
+  draw->loss: 8/8/8/8/8/3Q4/8/K1k5 b - - 0 1  standard draw, natural loss2
+  draw->loss: 8/8/8/8/8/8/5Q2/K6k b - - 0 1  standard draw, natural loss2
+  draw->loss: 8/8/8/8/8/6Q1/8/K6k b - - 0 1  standard draw, natural loss2

@@ -1,0 +1,7 @@
+KNK: 429440 standard-valid positions; graph sizes 429440 (standard, 956 ms), 429440 (natural-standardized, 1360 ms)
+rows: standard, columns: natural-standardized (value for the player to move)
+	win	draw	loss
+win	0	0	0
+draw	0	429440	0
+loss	0	0	0
+distance in plies (natural-standardized - standard) when both decisive with the same sign:

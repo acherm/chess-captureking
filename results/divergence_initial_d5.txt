@@ -1,0 +1,20 @@
+Divergences between 'standard' and 'natural' within 5 plies of rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+3447 positions where the legal moves differ
+  after 0 plies: 0 positions, 0 moves only in 'natural', 0 only in 'standard'; contribution to perft(5) difference: 0
+  after 1 plies: 0 positions, 0 moves only in 'natural', 0 only in 'standard'; contribution to perft(5) difference: 0
+  after 2 plies: 0 positions, 0 moves only in 'natural', 0 only in 'standard'; contribution to perft(5) difference: 0
+  after 3 plies: 134 positions, 461 moves only in 'natural', 0 only in 'standard'; contribution to perft(5) difference: 16733
+  after 4 plies: 3313 positions, 14914 moves only in 'natural', 0 only in 'standard'; contribution to perft(5) difference: 14914
+Rules of 'standard' forbidding the extra moves of 'natural':
+  noSelfCheck: 15375
+First 5 examples:
+  1. a3 b6 2. e3 Ba6 | rn1qkbnr/p1pppppp/bp6/8/8/P3P3/1PPP1PPP/RNBQKBNR w KQkq - 1 3
+    only in 'natural': Ke2 [noSelfCheck]
+  1. a3 b6 2. e4 Ba6 | rn1qkbnr/p1pppppp/bp6/8/4P3/P7/1PPP1PPP/RNBQKBNR w KQkq - 1 3
+    only in 'natural': Ke2 [noSelfCheck]
+  1. a3 c6 2. b3 Qa5 | rnb1kbnr/pp1ppppp/2p5/q7/8/PP6/2PPPPPP/RNBQKBNR w KQkq - 1 3
+    only in 'natural': d3 [noSelfCheck], d4 [noSelfCheck]
+  1. a3 c6 2. d3 Qa5+ | rnb1kbnr/pp1ppppp/2p5/q7/8/P2P4/1PP1PPPP/RNBQKBNR w KQkq - 1 3
+    only in 'natural': b3 [noSelfCheck], e3 [noSelfCheck], f3 [noSelfCheck], g3 [noSelfCheck], h3 [noSelfCheck], a4 [noSelfCheck], d4 [noSelfCheck], c4 [noSelfCheck], e4 [noSelfCheck], f4 [noSelfCheck], g4 [noSelfCheck], h4 [noSelfCheck], Nh3 [noSelfCheck], Nf3 [noSelfCheck], Be3 [noSelfCheck], Bf4 [noSelfCheck], Bg5 [noSelfCheck], Bh6 [noSelfCheck], Ra2 [noSelfCheck], Kd2 [noSelfCheck]
+  1. a3 c6 2. e3 Qa5 | rnb1kbnr/pp1ppppp/2p5/q7/8/P3P3/1PPP1PPP/RNBQKBNR w KQkq - 1 3
+    only in 'natural': d3 [noSelfCheck], d4 [noSelfCheck]

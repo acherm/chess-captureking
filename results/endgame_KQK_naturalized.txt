@@ -1,0 +1,8 @@
+KQK: 368452 standard-valid positions; graph sizes 375676 (standard-naturalized, 8385 ms), 516224 (natural, 13436 ms)
+rows: standard-naturalized, columns: natural (value for the player to move)
+	win	draw	loss
+win	144508	0	0
+draw	0	22176	0
+loss	0	0	201768
+distance in plies (natural - standard-naturalized) when both decisive with the same sign:
+  2: 346276

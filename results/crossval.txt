@@ -1,0 +1,32 @@
+data/positions/random.fen: 20000 positions; mismatches {'std_moves': 0, 'std_san': 0, 'std_check': 0, 'std_status': 0, 'nat_moves': 0}
+data/positions/check.fen: 63899 positions; mismatches {'std_moves': 0, 'std_san': 0, 'std_check': 0, 'std_status': 0, 'nat_moves': 0}
+data/positions/mate.fen: 72691 positions; mismatches {'std_moves': 0, 'std_san': 0, 'std_check': 0, 'std_status': 0, 'nat_moves': 0}
+data/positions/stalemate.fen: 1956 positions; mismatches {'std_moves': 0, 'std_san': 0, 'std_check': 0, 'std_status': 0, 'nat_moves': 0}
+data/positions/insufficient.fen: 1711 positions; mismatches {'std_moves': 0, 'std_san': 0, 'std_check': 0, 'std_status': 0, 'nat_moves': 0}
+data/positions/games.uci: 20000 games replayed; 0 status mismatches
+data/positions/random.fen: 20000 positions; mismatches {'std_moves': 0, 'std_san': 0, 'std_check': 0, 'std_status': 0, 'nat_moves': 0}
+data/positions/check.fen: 63899 positions; mismatches {'std_moves': 0, 'std_san': 0, 'std_check': 0, 'std_status': 0, 'nat_moves': 0}
+data/positions/mate.fen: 72691 positions; mismatches {'std_moves': 0, 'std_san': 0, 'std_check': 0, 'std_status': 0, 'nat_moves': 0}
+data/positions/stalemate.fen: 1956 positions; mismatches {'std_moves': 0, 'std_san': 0, 'std_check': 0, 'std_status': 0, 'nat_moves': 0}
+data/positions/insufficient.fen: 1711 positions; mismatches {'std_moves': 0, 'std_san': 0, 'std_check': 0, 'std_status': 0, 'nat_moves': 0}
+data/positions/games.uci: 20000 games replayed; 0 status mismatches
+natural perft initial depth 1: lean 20, reference 20 ok
+natural perft initial depth 2: lean 400, reference 400 ok
+natural perft initial depth 3: lean 8902, reference 8902 ok
+natural perft initial depth 4: lean 197742, reference 197742 ok
+natural perft kiwipete depth 1: lean 48, reference 48 ok
+natural perft kiwipete depth 2: lean 2049, reference 2049 ok
+natural perft kiwipete depth 3: lean 98903, reference 98903 ok
+natural perft pos3 depth 1: lean 16, reference 16 ok
+natural perft pos3 depth 2: lean 278, reference 278 ok
+natural perft pos3 depth 3: lean 4840, reference 4840 ok
+natural perft pos3 depth 4: lean 88813, reference 88813 ok
+natural perft pos4 depth 1: lean 38, reference 38 ok
+natural perft pos4 depth 2: lean 1845, reference 1845 ok
+natural perft pos4 depth 3: lean 71811, reference 71811 ok
+natural perft pos5 depth 1: lean 44, reference 44 ok
+natural perft pos5 depth 2: lean 1552, reference 1552 ok
+natural perft pos5 depth 3: lean 71104, reference 71104 ok
+natural perft pos6 depth 1: lean 46, reference 46 ok
+natural perft pos6 depth 2: lean 2124, reference 2124 ok
+natural perft pos6 depth 3: lean 94089, reference 94089 ok

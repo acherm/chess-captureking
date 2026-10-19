@@ -1,0 +1,8 @@
+KPK: 331352 standard-valid positions; graph sizes 1154986 (standard-stalemate-wins, 20992 ms), 2421344 (natural, 44495 ms)
+rows: standard-stalemate-wins, columns: natural (value for the player to move)
+	win	draw	loss
+win	141846	0	0
+draw	0	72914	0
+loss	0	0	116592
+distance in plies (natural - standard-stalemate-wins) when both decisive with the same sign:
+  2: 258438
