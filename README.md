@@ -59,7 +59,10 @@ How often, and how much:
   the eight games (standard or natural; ordinary, normal play, passing, lose-your-turn) are
   pairwise inequivalent, and three of Hamkins' diagrams suffice to show it. Modulo castling,
   exactly two pairs coincide: normal-play standard and natural chess, and standard and natural
-  chess with passing. Passing erases 98% of the K+R v K wins but none of the K+Q v K wins.
+  chess with passing. Passing erases 98% of the K+R v K wins but none of the K+Q v K wins. As
+  Hamkins predicted, it turns at least 82% of 1,956 real stalemates into wins for the stalemating
+  side. The exception is the most frequent one, K+P v K, but those games were almost all already
+  drawn one move before the stalemate.
 * **Machine-checked**:
   - proved for every position: every standard legal move is a natural legal move;
   - checked by evaluation (`native_decide`): the key fact about every position in the table above,
@@ -317,5 +320,26 @@ essay out of the repository.
 >
 > it's really tempting, but it seems another article...
 > Let's investigate this, and write experimental design and conclusion in a specific Markdown GRID_VARIANTS.md
+
+> Two nuances worth telling him: - His claim that the K+R v K mate "requires zugzwang" holds for about 99% of positions: with passing, the rook still wins 2,804 positions where the lone king is already boxed in. - K+Q v K needs no zugzwang at all: every queen win survives passing, only longer. => can you elaborate?
+
+> for 8/8/8/8/8/2k5/4Q3/1K6 w with passing how do you mate in 10?
+
+> document this specific example in GRID_VARIANTS.md
+
+> and push
+
+**Third session (21 October 2026)**
+
+> [the worked example of GRID_VARIANTS.md §3.3, pasted] is it shown by Hamkins?
+
+The agent answered no (the essay has no K+Q v K example), and noted an untested prediction of
+the essay about real stalemates.
+
+> The essay also makes a claim we haven't tested: "I believe that most stalemates that arise in practice" would become wins for the stalemating side with passing. We could check it on the stalemates in the real-game corpus. => please check
+>
+> for the K+R vs K, you get 99%... so there are counterexamples... what are they? isn't it a refutation of his claim?
+
+> Real stalemates with passing: Hamkins' prediction holds, except for K+P v K => spoecifically?
 
 </details>

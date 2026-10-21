@@ -20,6 +20,11 @@ antepenultimate chess are left for later (§7).
   standard game from every natural game. *The convention for a player who cannot move* separates
   the four games within each family, and passing is by far the most disruptive: it erases 98% of
   the K+R v K wins, but no K+Q v K win.
+* **Hamkins' guess about real stalemates holds**: with passing, at least 82% of 1,956 Lichess
+  stalemates become wins for the stalemating side (97.5% when it is a rook or more ahead). The
+  exception is the most frequent one, K+P v K, which stays drawn. But 203 of these 212 games were
+  already drawn one move before the stalemate, a single pawn up, so they lie outside his "far
+  more material" case (§3.4).
 * **Modulo castling, exactly two pairs are equivalent**: normal-play standard and natural chess,
   and standard and natural chess with passing. This is the precise form of the essay's closing
   sentence ("with the normal play convention [...] the correspondence works perfectly"), which,
@@ -252,8 +257,12 @@ Observations:
     two or three squares away, and the rook mates in 2 to 5 moves even though the defender may
     pass. For example, in `4RK1k/8/8/8/8/8/8/8 w` the line is 1. Re7 (pass) 2. Rg7 (pass) 3. Kf7
     (pass) 4. Rg5, and Rh5# follows whether Black passes or plays Kh7. Everywhere else K+R v K is
-    drawn. The rook needs zugzwang to drive the king into the corner, and only there can it mate
-    without it.
+    drawn: no win starts with the lone king off the edge, and on the edge, outside the corners,
+    only mates in one remain. The rook needs zugzwang to drive the king into the corner, and only
+    there can it mate without it. With the lone king to move, the 564 losses are the 216
+    checkmates, the 68 stalemates (the pass is followed by mate), and 280 corner positions where
+    every option, the pass included, is mated (`results/krk_passing.txt`; these counts are
+    recomputed with python-chess from the list of wins, independently of the Lean tablebase).
   - *Against a lone queen*, passing changes no result: all 144,508 wins survive. 55% keep their
     length and 44% get longer, by up to six moves (the longest mate goes from 10 moves to 12).
     For example, `8/8/8/8/8/2k5/4Q3/1K6 w` is a mate in 4 in standard chess, by zugzwang
@@ -367,6 +376,98 @@ $B play standard-passing --fen 8/8/8/8/8/2k5/4Q3/1K6 w - - 0 1 \
    Qe4 0000 Qd5 0000 Kc1 0000 Kd1 0000 Ke2 0000 Qc5+ Kb3 Kd3 Kb2 Qb5+ Ka3 Kc3 Ka2 Qb2#
 ```
 
+### 3.4 Real stalemates: does passing turn them into wins?
+
+The essay makes a prediction about real games. When a stalemate arises, the player causing it
+often has far more material, "and in most of these cases, if passing were allowed, then the
+instigating player would be able to push through a win. Indeed, I believe that most stalemates
+that arise in practice have this feature".
+
+**Design.** The positions are the 1,956 games ending in stalemate among the first 299,675 games
+of the Lichess dump (REPORT §3.2), in their final position. Each is valued for the stalemating
+side under two games:
+* standard chess with passing, the variation of the prediction;
+* lose-your-turn chess, the medieval rule quoted by Hamkins from Davidson, for comparison. There
+  the stalemated player passes once, and must then move whenever he can.
+
+The methods:
+* The 387 positions with three pieces are solved exactly, in one retrograde analysis of the
+  1.77M positions reachable from them (`chess exact-batch`).
+* The 1,569 others are searched to 8 plies, then to 10 plies for those still undecided
+  (`chess solve-batch`). A win found by search is certain. A draw can only be established
+  exactly, so these positions are either wins or undecided.
+
+Material is counted as pawn 1, knight and bishop 3, rook 5, queen 9. The stalemated player never
+wins.
+
+| stalemates | n | with passing: win / draw / undecided | lose-your-turn: win / draw / undecided |
+|---|---|---|---|
+| all | 1,956 | **1,604 (82.0%)** / 224 (11.5%) / 128 (6.5%) | 1,715 (87.7%) / 140 (7.2%) / 101 (5.2%) |
+| stalemating side 5 points or more ahead | 1,507 | **1,470 (97.5%)** / 0 / 37 | 1,485 (98.5%) / 0 / 22 |
+| 1 to 4 points ahead | 420 | 134 (31.9%) / 205 (48.8%) / 81 | 230 (54.8%) / 121 (28.8%) / 69 |
+| level or behind | 29 | 0 / 19 / 10 | 0 / 19 / 10 |
+
+| most frequent material (stalemating v stalemated) | n | with passing: win / draw / undecided | lose-your-turn: win / draw / undecided |
+|---|---|---|---|
+| K+P v K | 212 | 11 / **201** / 0 | 95 / 117 / 0 |
+| K+Q v K | 142 | 142 / 0 / 0 | 142 / 0 / 0 |
+| K+B+P v K | 50 | 13 / 0 / 37 | 15 / 0 / 35 |
+| K+P+P v K | 49 | 46 / 0 / 3 | 47 / 0 / 2 |
+| K+Q v K+P | 25 | 22 / 0 / 3 | 23 / 0 / 2 |
+| K v K+P | 19 | 0 / 19 / 0 | 0 / 19 / 0 |
+
+Findings:
+* **Hamkins is right.** With passing, at least 82% of real stalemates become wins for the
+  stalemating side, and at most 88.5% (1,956 minus the 224 exact draws). His "far more material"
+  case is a rook's worth or more, which covers 77% of the stalemates. There the wins reach 97.5%,
+  and no draw is found. The commonest case is K+Q v K (142 stalemates, all won): with passing, the
+  stalemate that saved the defender is simply gone. The 37 undecided positions of this group are
+  mostly rook endings with pawns, where a pawn must queen first, beyond the horizon.
+* **The exception is the most common stalemate, K+P v K** (212 games, 11%): with passing, 201
+  stay drawn. They fall into only seven patterns. In the table, colours and board sides are
+  normalized so that White stalemates and the pawn is on the e- to h-file. The last column
+  values, exactly, the position one move before the stalemate, replayed from the PGN
+  (`results/kpk_stalemates.txt`).
+
+  | pattern (Black stalemated) | games | with passing | lose-your-turn | one move earlier, standard chess |
+  |---|---|---|---|---|
+  | rook's pawn, `7k/7P/7K` | 79 | draw | draw | draw (79) |
+  | rook's pawn, `7k/7P/6K1` | 38 | draw | draw | draw (38) |
+  | knight's pawn on the 7th, `6k1/6P1/6K1` | 39 | draw | win in 5 moves | draw (39) |
+  | bishop's pawn on the 7th, `5k2/5P2/5K2` | 36 | draw | win in 7 moves | draw (35), after a capture (1) |
+  | centre pawn on the 7th, `4k3/4P3/4K3` | 9 | draw | win in 9 moves | draw (9) |
+  | knight's pawn on the 6th, `7k/5K2/6P1` | 10 | win in 3 moves | win in 3 moves | win (7), draw (3) |
+  | knight's pawn on the 6th, `5K1k/8/6P1` | 1 | win in 4 moves | win in 4 moves | after a capture (1) |
+
+  - **The stalemate cost nothing.** In 203 of the 212 games, the position one move earlier was
+    already a standard draw. The stalemate was how a drawn ending ended, a single pawn up, not
+    a blunder that threw away a win. K+P v K is therefore the exception in number, but it lies
+    outside the case Hamkins describes ("far more material"), and does not refute him.
+  - **The rook's pawn** (117 games): the defending king sits in the corner. It is drawn with
+    passing and with lose-your-turn alike. Only normal play, by definition, and natural chess,
+    where the stalemated king must step into check, count it as a win.
+  - **The pawn on the 7th** (84 games): the defending king stands on the queening square, and the
+    attacking king directly behind the pawn. The attacker lacks a single tempo, which only
+    zugzwang could give him. Lose-your-turn gives it: in `5k2/5P2/5K2/8/8/8/8/8 b` (Lichess
+    mPijDxzR), after Black's forced pass, 1. Ke6 Kg7 2. Ke7 Kg6 3. f8=Q, and mate follows. With
+    passing, Black passes back for ever and the white king can never take f8 away from him.
+  - **The knight's pawn on the 6th** (11 games) is the only pattern that passing wins: the pawn
+    queens with check. In `7k/5K2/6P1/8/8/8/8/8 b` (Lichess 9IakqfEz), after Black's pass,
+    1. g7+ Kh7 2. g8=Q+ Kh6 3. Qg6#. Seven of these were real blunders, standard wins thrown
+    away by the stalemating move (Lichess hD3Mtb8J, `k7/2K5/8/1P6/8/8/8/8 w`: 80. b6??
+    stalemate), and passing wins all seven back.
+* **The bishop and rook's pawn.** Most of the undecided K+B+P v K positions (26 of 37) are this
+  fortress, with a bishop of the wrong colour: the defending king sits in the corner. They are
+  drawn in standard chess and very likely with passing too, but with four pieces they are beyond
+  the exact solver.
+* **So the affinity Hamkins sees between passing and normal play holds in practice.** It breaks
+  where only zugzwang could win, as in the K+P v K stalemates with the pawn on the 7th, which
+  lose-your-turn wins and passing does not. Normal play wins all 1,956 stalemates by
+  definition, lose-your-turn 88–93%, and passing 82–88%.
+
+Reproduce: `scripts/stalemates_passing.sh` writes `results/stalemates_passing.tsv` (one row per
+game) and `results/stalemates_passing_summary.md`.
+
 ---
 
 ## 4. Hamkins' claims, checked
@@ -384,7 +485,8 @@ $B play standard-passing --fen 8/8/8/8/8/2k5/4Q3/1K6 w - - 0 1 \
 | "standard chess with passing is the same as normal standard chess with passing" | ✓ by construction: a player not in check can always pass | §1, choice 5 |
 | the double stalemate `k7/P1p5/KpP5/1P6/8/8/8/8 b`: a draw by perpetual passing in standard chess with passing, a White win in natural chess, a draw in natural chess with passing | ✓ exact | `hamkins_double_stalemate` |
 | K+R v K `8/8/8/8/2r5/4k3/8/3K4 w`: a Black win in standard chess "even with normal play", a draw with passing | ✓ exact | `hamkins_rook_zugzwang`, `tests --deep` |
-| "the standard king + rook versus king checkmate requires zugzwang" | ✓ to drive the king to the corner: with passing, 99.1% of the decisive K+R v K positions become draws. The rook still wins when the lone king is already on the edge with a mate in one (1,512 positions), or already in a corner with the attacking king nearby (1,292 positions, mates in 2 to 5 moves). K+Q v K, in contrast, needs no zugzwang: all its wins survive passing | `results/grid_endgame_KRK.txt`, `chess longest-wins R standard-passing`, `chess line` |
+| "the standard king + rook versus king checkmate requires zugzwang" | ✓ to drive the king to the corner: with passing, 99.1% of the decisive K+R v K positions become draws, no win starts with the lone king off the edge, and on the edge, outside the corners, only mates in one remain. The 2,804 surviving wins are positions where the king is already caught: a mate in one on the edge (1,512), or the king in a corner with the attacking king 2 or 3 squares away (1,292, mates in 2 to 5 moves). They contradict only the literal reading "no K+R v K win without zugzwang". K+Q v K, in contrast, needs no zugzwang: all its wins survive passing | `results/grid_endgame_KRK.txt`, `results/krk_passing.txt`, `chess line` |
+| "most stalemates that arise in practice" would be wins for the stalemating side if passing were allowed | ✓ at least 82.0% of 1,956 Lichess stalemates (97.5% when the stalemating side is a rook or more ahead). But K+P v K, the most frequent stalemate (212), stays drawn in 201 cases. In 203 of the 212, the position was already a standard draw one move earlier, a single pawn up: outside his "far more material" case | §3.4, `results/stalemates_passing_summary.md`, `results/kpk_stalemates.txt` |
 | a player stalemated in standard chess cannot force a win when passing is allowed | ✓ none of the 1,138 standard stalemates of the five endgames is a win for the stalemated player with passing | `results/grid_endgame_K*K.txt` |
 | the lose-your-turn position B: stalemate in standard and natural chess, a draw by passing in both, a Black win in lose-your-turn chess in both | ✓ exact | `hamkins_lose_turn` |
 | "with the normal play convention [...] the correspondence works perfectly" (closing sentence) | ✗ as stated (position A, and the essay's own "Normal chess" section); ✓ once castling is freed in standard chess (§5) | bridges |
@@ -457,7 +559,11 @@ where both games are decisive.
 **How much.** Normal play, lose-your-turn and the natural games change only stalemates and what
 follows from them: a fraction of the draws of K+P v K (up to a third), and the stalemate traps
 of K+B v K and K+N v K. Passing changes far more: it erases 98% of the K+R v K wins, and none of
-the K+Q v K wins, which shows exactly where zugzwang is needed in the basic mates.
+the K+Q v K wins, which shows exactly where zugzwang is needed in the basic mates. On real
+stalemates, passing gives the stalemating side the win in at least 82% of the games, as Hamkins
+predicted. K+P v K, the most frequent, is the exception. Those games were almost all drawn
+one move before the stalemate, and only zugzwang could win them: lose-your-turn supplies it, and
+passing removes it.
 
 **What the formalization forced.** The essay's variations are described in a sentence each. As
 rule sets they need decisions that change results: a pass must be forbidden out of check (or
@@ -469,7 +575,8 @@ be changed and its effect measured.
 **Limits.** The exact values cover only 3-piece endgames, without castling and without blocked
 positions; castling and immobility rest on the game positions (bounded search, 3 and 5 plies) and
 on the certified witnesses. The bridges are tested, not proved. The move counters are ignored by the
-exact solver.
+exact solver. Of the real stalemates of §3.4, 6.5% (with passing) and 5.2% (lose-your-turn) stay
+undecided: they have four pieces or more and need more than 10 plies.
 
 ## 7. Not done: penultimate and antepenultimate chess
 
@@ -494,6 +601,9 @@ python3 -I scripts/variability_matrix.py $B std=standard std-normal=standard-nor
   nat-normal=natural-normal nat-passing=natural-passing nat-lose-turn=natural-lose-turn
 $B exact standard-passing "8/8/8/8/2r5/4k3/8/3K4 w - - 0 1"
 $B longest-wins R standard-passing 3000                    # the K+R v K wins that survive passing
+$B longest-wins R standard-passing 5000 | python3 -I scripts/krk_passing.py > results/krk_passing.txt
 $B line R standard-passing "4RK1k/8/8/8/8/8/8/8 w - - 0 1"   # a line of best play
+scripts/stalemates_passing.sh                              # §3.4: the real stalemates
+python3 -I scripts/kpk_stalemates.py > results/kpk_stalemates.txt   # §3.4: the K+P v K ones
 $B explain Q standard-passing "8/8/8/8/8/2k5/4Q3/1K6 w - - 0 1"  # the worked example of §3.3
 ```

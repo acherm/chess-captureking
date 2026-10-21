@@ -1,0 +1,17 @@
+2804 wins for the rook side (to move), by value, lone king, distance between kings
+    672  win1  corner 2   e.g. 3R4/8/8/8/8/8/8/5K1k w - - 0 1
+    840  win1  edge   2   e.g. 8/8/8/8/5K1k/8/1R6/8 w - - 0 1
+    228  win3  corner 2   e.g. 8/8/8/8/8/8/2KR4/k7 w - - 0 1
+    840  win3  corner 3   e.g. k7/8/8/1K6/8/8/8/4R3 w - - 0 1
+     12  win5  corner 2   e.g. 8/8/8/8/8/8/1R6/k1K5 w - - 0 1
+     24  win5  corner 3   e.g. k7/1R6/8/1K6/8/8/8/8 w - - 0 1
+     56  win7  corner 2   e.g. 8/8/8/8/8/8/3R4/k1K5 w - - 0 1
+      4  win7  corner 3   e.g. k7/1R6/8/3K4/8/8/8/8 w - - 0 1
+     40  win9  corner 2   e.g. 4RK1k/8/8/8/8/8/8/8 w - - 0 1
+     88  win9  corner 3   e.g. k7/8/8/K7/8/8/1R6/8 w - - 0 1
+
+564 losses for the lone king (to move)
+     96  checkmate    corner   e.g. 8/8/8/8/8/R7/8/k1K5 b - - 0 1
+    120  checkmate    edge     e.g. 8/8/8/8/R7/8/k1K5/8 b - - 0 1
+    280  not in check corner   e.g. 8/8/8/8/1R6/8/2K5/k7 b - - 0 1
+     68  stalemate    corner   e.g. 8/8/8/8/8/8/1R6/k1K5 b - - 0 1

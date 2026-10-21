@@ -22,6 +22,8 @@ import Chess
     chess endgame-value MATERIAL RULES FEN   exact value of one position
     chess exact RULES FEN                    exact value of a position (retrograde analysis of
                                              every position reachable from it)
+    chess exact-batch RULES                  FENs on stdin -> exact values (one analysis of
+                                             everything reachable from them)
     chess grid-endgame MATERIAL              tablebases of K+MATERIAL v K under the 8 games of
                                              Hamkins' grid (and the bridges), compared pairwise
     chess line MATERIAL RULES FEN            a line of best play, from the tablebase of K+MATERIAL v K
@@ -271,6 +273,20 @@ def run : List String → IO Unit
     let (rs, pos) := (← getRules name, ← getPosition fen)
     let ((v, n), ms) ← timed fun _ => Grid.exactValue rs pos
     IO.println s!"{rs.name}: {v} (for {pos.turn}; {n} positions, {ms} ms)"
+  | ["exact-batch", name] => do
+    -- FENs on stdin (first tab-separated field); one retrograde analysis of everything reachable
+    -- from all of them
+    let rs ← getRules name
+    let lines ← readLines
+    let fens := lines.map fun l => (l.splitOn "\t").headD l
+    let mut start := #[]
+    for fen in fens do
+      match Position.ofFen fen with
+      | .ok p => start := start.push p
+      | .error e => throw <| IO.userError s!"{fen}: {e}"
+    let ((vs, n), ms) ← timed fun _ => Grid.startValues rs start
+    for (fen, v) in fens.zip vs do IO.println s!"{fen}\t{v}"
+    IO.eprintln s!"{rs.name}: {start.size} positions, game graph of {n} positions, {ms} ms"
   | ["grid-endgame", material] => do
     let extra := material.toList.filterMap Piece.ofChar?
     let start := (allPlacements extra).filter Standard.rules.isValid

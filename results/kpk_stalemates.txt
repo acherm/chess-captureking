@@ -1,0 +1,32 @@
+212 K+P v K stalemates (normalized: White stalemates Black, pawn on files e-h)
+
+7k/7P/7K/8/8/8/8/8  (79 games)
+  stalemate: passing draw (exact), lose-your-turn draw (exact): 79
+  one move earlier, standard/passing/lose-your-turn draw/draw/draw: 79  (e.g. NZ2sKoBF: 7k/7P/6K1/8/8/8/8/8 w - - 1 72, then Kh6)
+
+6k1/6P1/6K1/8/8/8/8/8  (39 games)
+  stalemate: passing draw (exact), lose-your-turn win in 10 (exact): 39
+  one move earlier, standard/passing/lose-your-turn draw/draw/win: 39  (e.g. 7oFZMoVs: 6k1/6P1/7K/8/8/8/8/8 w - - 1 85, then Kg6)
+
+7k/7P/6K1/8/8/8/8/8  (38 games)
+  stalemate: passing draw (exact), lose-your-turn draw (exact): 38
+  one move earlier, standard/passing/lose-your-turn draw/draw/draw: 38  (e.g. GQ5ulJdH: 8/8/8/8/8/pk6/8/K7 b - - 3 61, then a2)
+
+5k2/5P2/5K2/8/8/8/8/8  (36 games)
+  stalemate: passing draw (exact), lose-your-turn win in 14 (exact): 36
+  one move earlier, standard/passing/lose-your-turn 4 pieces/4 pieces/4 pieces: 1  (e.g. lGby5j3W: 8/8/8/8/8/5Nk1/5p2/5K2 b - - 5 56, then Kxf3)
+  one move earlier, standard/passing/lose-your-turn draw/draw/win: 35  (e.g. 8vVyHyAC: 8/8/8/8/8/3k4/2p5/2K5 b - - 1 85, then Kc3)
+
+7k/5K2/6P1/8/8/8/8/8  (10 games)
+  stalemate: passing win in 6 (exact), lose-your-turn win in 6 (exact): 10
+  one move earlier, standard/passing/lose-your-turn draw/win/win: 3  (e.g. WuJS0cmo: 7k/8/5KP1/8/8/8/8/8 w - - 3 56, then Kf7)
+  one move earlier, standard/passing/lose-your-turn win/win/win: 7  (e.g. hD3Mtb8J: k7/2K5/8/1P6/8/8/8/8 w - - 1 80, then b6)
+
+4k3/4P3/4K3/8/8/8/8/8  (9 games)
+  stalemate: passing draw (exact), lose-your-turn win in 18 (exact): 9
+  one move earlier, standard/passing/lose-your-turn draw/draw/win: 9  (e.g. JFedU7jA: 8/8/8/8/8/3k4/4p3/4K3 b - - 1 61, then Ke3)
+
+5K1k/8/6P1/8/8/8/8/8  (1 games)
+  stalemate: passing win in 8 (exact), lose-your-turn win in 8 (exact): 1
+  one move earlier, standard/passing/lose-your-turn 4 pieces/4 pieces/4 pieces: 1  (e.g. X88b0Aph: 8/8/8/8/8/6p1/8/4kB1K b - - 0 68, then Kxf1)
+
